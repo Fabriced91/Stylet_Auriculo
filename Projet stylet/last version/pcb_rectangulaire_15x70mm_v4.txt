@@ -1,0 +1,554 @@
+# ═══════════════════════════════════════════════════════════════
+#  PCB RECTANGULAIRE 15×70mm - Stylet Auriculothérapie v4.0
+# ═══════════════════════════════════════════════════════════════
+
+## 📐 DIMENSIONS & AVANTAGES
+
+### Format PCB Rectangulaire
+
+```
+Dimensions : 15mm × 70mm × 1.6mm
+Poids : ~8g
+Couches : 2 (TOP + BOTTOM)
+Matériau : FR-4 standard
+Rentre dans tube Ø20mm intérieur (Ø18mm utile)
+```
+
+### ✅ AVANTAGES vs PCB Circulaire
+
+| Aspect | Circulaire Ø18mm | Rectangulaire 15×70mm | Gagnant |
+|--------|------------------|----------------------|---------|
+| **Surface utile** | 254mm² | 1050mm² | ✅ Rectangle (4× plus) |
+| **Routage** | Difficile | Facile | ✅ Rectangle |
+| **Placement composants** | Serré | Spacieux | ✅ Rectangle |
+| **Assemblage CMS** | Délicat | Standard | ✅ Rectangle |
+| **Coût fabrication** | ~10€ | ~10€ | ≈ Égal |
+| **LED latérales** | Perçage 90° | Montage plat | ✅ Rectangle |
+| **Maintenance** | Difficile | Facile | ✅ Rectangle |
+| **Longueur stylet** | 100mm | 140mm | ⚠️ +40mm |
+
+**Conclusion : PCB rectangulaire NETTEMENT supérieur !** ✅
+
+---
+
+## 🎨 LAYOUT PCB 15×70mm DÉTAILLÉ
+
+### Vue complète (échelle réelle)
+
+```
+0mm ┌─────────────────────────────────────────────────────────┐
+    │ ZONE 1 : SORTIE LED PRINCIPALE                          │
+    │                                                         │
+    │ [Pads LED+/-]  [R47Ω] [R1k] [Q1 2N7000]                │
+  5 │   ●  ●                                                  │
+    ├─────────────────────────────────────────────────────────┤
+    │ ZONE 2 : LED INDICATEURS (traversantes 3mm)            │
+    │                                                         │
+    │  LED_R   LED_G   LED_B   LED_M                         │
+ 15 │   ●       ●       ●       ●                            │
+    │   │       │       │       │                            │
+    │ [470Ω] [470Ω] [470Ω] [470Ω]                           │
+ 25 │  D8      D9      D10      D7                           │
+    ├─────────────────────────────────────────────────────────┤
+    │ ZONE 3 : MICROCONTRÔLEUR                               │
+    │                                                         │
+    │        ┌──────────────────┐                            │
+ 30 │        │  ATmega328P-AU   │                            │
+    │        │    TQFP-32       │                            │
+ 35 │        │     7×7mm        │                            │
+    │        └──────────────────┘                            │
+    │                                                         │
+ 40 │ [C1] [C2] [C3] [C4] [C5] [C6]                          │
+    │ 10µF 100n 10µF 100n 10µF 100n                          │
+ 45 ├─────────────────────────────────────────────────────────┤
+    │ ZONE 4 : BOUTONS (side-mount 4×4mm)                    │
+    │                                                         │
+    │  [SW1]      [SW2]      [SW3]                           │
+ 50 │  FREQ      INTENS      MODE                            │
+    │   D2        D3         D4                              │
+    │  [10k]     [10k]      [10k]                            │
+ 55 │                                                         │
+    ├─────────────────────────────────────────────────────────┤
+    │ ZONE 5 : ALIMENTATION                                   │
+    │                                                         │
+ 60 │ [TP4056]    [HT7333]                                   │
+    │ SOT23-6     SOT-89                                     │
+    │  [2kΩ]      [10µF][100n]                               │
+ 65 │ [LED_CHG] [LED_STB]                                    │
+    ├─────────────────────────────────────────────────────────┤
+    │ ZONE 6 : CONNECTEURS                                    │
+    │                                                         │
+    │ [Micro-USB]                [Switch ON/OFF]             │
+ 70 │  ┌──────┐                   ──────                     │
+    │  │ USB  │                   Slide                      │
+    │  └──────┘                                               │
+    │                                                         │
+    │ [+BAT] [-BAT]        [ISP Header pads]                 │
+    │   ●      ●            ● ● ●                            │
+    │                       ● ● ●                            │
+    └─────────────────────────────────────────────────────────┘
+    15mm largeur
+```
+
+---
+
+## 🔩 INTÉGRATION MÉCANIQUE COMPLÈTE
+
+### Stylet complet avec compartiment batterie séparé
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│              STYLET COMPLET Ø20mm × 140mm                    │
+└──────────────────────────────────────────────────────────────┘
+
+0mm    [Embout conique Ø2mm inox] (10mm)
+       
+10mm   [Fibre optique PMMA Ø2mm] (30mm)
+       
+40mm   [Support LED + LED Nichia sur câble]
+       
+45mm   ┌──────────────────────────────────────────┐
+       │                                          │
+       │        PCB 15×70mm                       │
+       │                                          │
+       │  40mm : ● LED Rouge (perçage tube)       │
+       │  45mm : ● LED Verte (perçage tube)       │
+       │  50mm : ● LED Bleue (perçage tube)       │
+       │  55mm : ● LED Mode (perçage tube)        │
+       │                                          │
+       │  75mm : [BTN] FREQ (perçage tube)        │
+       │  81mm : [BTN] INTENS (perçage tube)      │
+       │  87mm : [BTN] MODE (perçage tube)        │
+       │                                          │
+       │  98mm : [USB] + [Switch] (perçages tube) │
+       │                                          │
+115mm  └──────────────────────────────────────────┘
+       
+       ════════════════════════════════════════════
+       Séparation PCB / Compartiment batterie
+       Câble souple JST 50mm
+       ════════════════════════════════════════════
+       
+115mm  ┌──────────────────────────────────────────┐
+       │                                          │
+       │  COMPARTIMENT BATTERIE                   │
+       │                                          │
+       │  [Ressort contact +]                     │
+120mm  │       │                                  │
+       │  [Batterie LiPo 10440]                   │
+       │  Ø10×40mm, 500mAh                        │
+       │       │                                  │
+155mm  │  [Contact - plat]                        │
+       │                                          │
+       │  [Bouchon arrière démontable]            │
+       │                                          │
+160mm  └──────────────────────────────────────────┘
+
+LONGUEUR TOTALE : 160mm (ou 140mm avec batterie plus courte)
+```
+
+### Perçages latéraux du tube
+
+```
+VUE DÉVELOPPÉE DU TUBE (comme si on le déroulait) :
+
+Position │ Type      │ Dimension  │ Fonction
+─────────┼───────────┼────────────┼──────────────────
+40mm     │ Rond      │ Ø3.2mm     │ LED Rouge visible
+45mm     │ Rond      │ Ø3.2mm     │ LED Verte visible
+50mm     │ Rond      │ Ø3.2mm     │ LED Bleue visible
+55mm     │ Rond      │ Ø3.2mm     │ LED Mode visible
+75mm     │ Carré     │ 4.5×4.5mm  │ Bouton FREQ
+81mm     │ Carré     │ 4.5×4.5mm  │ Bouton INTENS
+87mm     │ Carré     │ 4.5×4.5mm  │ Bouton MODE
+98mm     │ Rectangle │ 7×3mm      │ Micro-USB
+98mm*    │ Rectangle │ 7×3mm      │ Switch (opposé USB)
+
+* Position angulaire décalée de 180° par rapport à USB
+```
+
+---
+
+## 📍 POSITIONNEMENT DÉTAILLÉ DES COMPOSANTS
+
+### Coordonnées exactes sur le PCB (origine = coin haut gauche)
+
+```
+COMPOSANT          X (mm)  Y (mm)  Rotation  Package    Note
+───────────────────────────────────────────────────────────────
+Pads LED+          2       7.5     0°        Pad 2mm    Câble LED
+Pads LED-          5       7.5     0°        Pad 2mm    
+R1 (47Ω)           8       7.5     0°        0805       Driver LED
+R2 (1kΩ)           10      7.5     0°        0805       Gate MOSFET
+Q1 (2N7000)        12      7.5     0°        SOT-23     MOSFET
+
+LED_R (Rouge)      3       17      90°       3mm        Traversante
+R3 (470Ω)          3       20      0°        0805       
+LED_G (Verte)      6       17      90°       3mm        Traversante
+R4 (470Ω)          6       20      0°        0805       
+LED_B (Bleue)      9       17      90°       3mm        Traversante
+R5 (470Ω)          9       20      0°        0805       
+LED_M (Mode)       12      17      90°       3mm        Traversante
+R6 (470Ω)          12      20      0°        0805       
+
+U1 (ATmega328P)    7.5     35      45°       TQFP-32    Centre
+C1 (10µF)          2       40      0°        0805       Découplage
+C2 (100nF)         4       40      0°        0805       
+C3 (10µF)          11      40      0°        0805       
+C4 (100nF)         13      40      0°        0805       
+C5 (10µF)          2       42      0°        0805       
+C6 (100nF)         4       42      0°        0805       
+
+SW1 (BTN_FREQ)     7.5     48      0°        4×4mm      Side-mount
+R7 (10kΩ)          11      48      0°        0805       Pull-up
+SW2 (BTN_INTENS)   7.5     54      0°        4×4mm      Side-mount
+R8 (10kΩ)          11      54      0°        0805       Pull-up
+SW3 (BTN_MODE)     7.5     60      0°        4×4mm      Side-mount
+R9 (10kΩ)          11      60      0°        0805       Pull-up
+
+U3 (TP4056)        3       65      0°        SOT23-6    Charge LiPo
+R10 (2kΩ)          6       65      0°        0805       Rprog
+LED_CHG (Rouge)    3       67      0°        0805       Charge
+LED_STB (Vert)     5       67      0°        0805       Standby
+
+U2 (HT7333)        11      65      0°        SOT-89     Régulateur 3.3V
+C7 (10µF)          11      67      0°        0805       Input
+C8 (100nF)         13      67      0°        0805       Output
+
+J1 (Micro-USB)     2       69      0°        Edge       Charge
+SW4 (ON/OFF)       13      69      0°        Slide 7mm  Power
+Pads BAT+/-        7.5     69      0°        Pad 2mm    Batterie
+ISP Pads           7.5     68      0°        2×3 pads   Prog
+```
+
+---
+
+## 🔌 ROUTAGE OPTIMISÉ
+
+### Largeur des pistes
+
+```
+SIGNAL              Largeur   Courant   Priorité
+────────────────────────────────────────────────────
+GND (plan)          Max       >1A       ★★★★★
+VCC 3.3V            0.8mm     500mA     ★★★★★
+LED_MAIN            0.8mm     150mA     ★★★★☆
+VBAT (3.7V)         1.0mm     1A        ★★★★★
+Signal digital      0.3mm     <10mA     ★★★☆☆
+USB D+/D-           0.3mm     <100mA    ★★★☆☆
+```
+
+### Stratégie de routage
+
+```
+TOP LAYER :
+- VCC 3.3V : Piste horizontale pleine largeur en haut
+- Signal digital : Pistes fines interconnexions
+- LED_MAIN : Piste large pour courant
+- VBAT : Piste large de TP4056 vers pads
+
+BOTTOM LAYER :
+- GND : Plan de masse complet (>90% coverage)
+- Via thermiques sous régulateurs (Ø0.5mm, 4-6 via)
+- Quelques pistes signal si conflit TOP
+```
+
+### Via placement
+
+```
+Minimum 1 via GND par :
+- Pin GND de chaque IC (ATmega, régulateurs)
+- Cathode de chaque LED
+- Source du MOSFET
+- Pads GND des connecteurs
+
+Total via estimé : ~40-50 via
+Diamètre via : 0.3mm (drill) / 0.6mm (pad)
+```
+
+---
+
+## 🔧 FIXATION PCB DANS LE TUBE
+
+### Solution recommandée : Rails imprimés 3D
+
+```
+RAIL DEMI-CYLINDRIQUE (impression 3D)
+
+Vue en coupe :
+    
+    ┌─────────────────────┐
+    │   Tube Ø20mm        │
+    │  ┌───────────────┐  │
+    │  │  Rail PLA     │  │ ← Épaisseur 1mm
+    │  │  ┌─────────┐  │  │
+    │  │  │ Rainure │  │  │ ← Glisse PCB 15mm
+    │  │  │  PCB    │  │  │   Tolérance ±0.2mm
+    │  │  └─────────┘  │  │
+    │  └───────────────┘  │
+    │                     │
+    │  (Répéter opposé)   │
+    └─────────────────────┘
+
+Matériau : PLA ou PETG
+Longueur : 60mm (couvre zone centrale PCB)
+Fixation : Collé au tube (cyanoacrylate)
+```
+
+### Fichier STL à imprimer (dimensions)
+
+```
+Rail gauche :
+- Longueur : 60mm
+- Rayon extérieur : 9mm (pour tube Ø20mm intérieur = 18mm)
+- Épaisseur paroi : 1mm
+- Rainure PCB : 15.2mm × 1.8mm (tolérance)
+- 2 picots de centrage (espacement 50mm)
+
+Rail droit : Symétrique du gauche
+
+Quantité : 2 rails par stylet
+Temps impression : ~1h (0.2mm layer, 20% infill)
+```
+
+---
+
+## 💡 COMPARTIMENT BATTERIE DÉTAILLÉ
+
+### Conception mécanique
+
+```
+COMPARTIMENT (impression 3D ou tube séparé)
+
+┌──────────────────────────────────────────┐
+│                                          │
+│  Ressort de contact (+)                  │
+│  ┌────┐                                  │
+│  │////│ ← Ressort compression Ø8mm       │
+│  │////│    Longueur : 10mm               │
+│  └─┬──┘    Force : 2N                    │
+│    │                                      │
+│  [Batterie LiPo 10440]                   │
+│  ┌──────────────────────┐                │
+│  │     Ø10 × 40mm       │                │
+│  │      500mAh          │                │
+│  │     Protection PCM   │                │
+│  └──────────────────────┘                │
+│    │                                      │
+│  [Contact plat (-)]                      │
+│  ══════                                   │
+│    │                                      │
+│  [Câble sortie]                          │
+│  Rouge : +BAT (vers PCB)                 │
+│  Noir  : -BAT (vers PCB)                 │
+│  Longueur : 50mm                         │
+│  Connecteur : JST-PH 2.0mm               │
+│                                          │
+│  [Bouchon arrière]                       │
+│  - Vissé (M20×0.5) ou clipsé            │
+│  - Joint torique Ø18×1mm                 │
+│  - Accès batterie : Vissage 2 tours     │
+│                                          │
+└──────────────────────────────────────────┘
+
+Longueur compartiment : 55mm
+Poids avec batterie : ~15g
+```
+
+### Avantages séparation batterie
+
+```
+✅ Sécurité : Isolation batterie / circuits
+✅ Maintenance : Remplacement facile sans démonter PCB
+✅ Flexibilité : Changement capacité batterie
+✅ Thermique : Pas de chaleur régulateurs sur batterie
+✅ Modularité : Compartiment amovible
+✅ Durée de vie : Batteries remplaçables
+```
+
+---
+
+## 📦 BOM ACTUALISÉE (PCB Rectangulaire)
+
+### Différences vs version circulaire
+
+```
+IDENTIQUE :
+- Tous les composants électroniques
+- Prix unitaire composants
+- Références fabricants
+
+CHANGEMENTS :
+✅ PCB : Format 15×70mm au lieu de Ø18mm
+✅ Coût identique : ~10€ pour 5 PCB
+✅ Rails fixation : +2€ (impression 3D)
+✅ Compartiment batterie : +3€ (impression 3D)
+✅ Câble batterie : +1€ (50mm au lieu de 30mm)
+
+TOTAL : ~25€ par stylet (vs ~20€ circulaire)
+Surcoût : +5€ pour modularité et facilité assemblage
+```
+
+---
+
+## 🏭 FABRICATION PCB
+
+### Spécifications JLCPCB
+
+```
+PCB Specification :
+────────────────────────────────────────
+Board Dimensions : 15mm × 70mm
+Board Thickness : 1.6mm
+PCB Qty : 5 or 10
+PCB Color : Black matte
+Surface Finish : ENIG (or LeadFree HASL)
+Copper Weight : 1 oz
+Material : FR-4 TG155
+Remove Order Number : Yes
+
+Advanced Options :
+────────────────────────────────────────
+Min Track/Spacing : 6/6mil (0.15mm)
+Min Hole Size : 0.3mm
+Via Covering : Tented (covered by mask)
+Board Outline Tolerance : ±0.2mm
+```
+
+### Prix estimé
+
+```
+5 PCB (noir, ENIG) : ~8€
+10 PCB (noir, ENIG) : ~12€
+Livraison DHL : +8€
+────────────────────
+Total 5 PCB : ~16€
+Total 10 PCB : ~20€
+
+Prix par PCB :
+- Lot de 5 : 3.20€/pcs
+- Lot de 10 : 2.00€/pcs
+```
+
+---
+
+## ⚙️ ASSEMBLAGE STEP-BY-STEP
+
+### Ordre de montage
+
+```
+ÉTAPE 1 : PCB
+├─ Soudure composants CMS (3h)
+├─ Programmation ATmega328P (30min)
+├─ Tests électriques (30min)
+└─ ✓ PCB fonctionnel
+
+ÉTAPE 2 : MÉCANIQUE TUBE
+├─ Perçages LED (4× Ø3.2mm)
+├─ Perçages boutons (3× 4.5×4.5mm)
+├─ Perçages USB + Switch (2× 7×3mm)
+└─ Ébavurage + nettoyage
+
+ÉTAPE 3 : RAILS FIXATION
+├─ Impression 3D rails (1h)
+├─ Collage rails dans tube
+└─ Test insertion PCB
+
+ÉTAPE 4 : OPTIQUE
+├─ Montage LED Nichia sur câble
+├─ Insertion fibre optique
+├─ Collage embout conique
+└─ Test illumination
+
+ÉTAPE 5 : INTÉGRATION
+├─ Insertion PCB dans rails
+├─ Passage LED dans perçages
+├─ Passage boutons dans perçages
+├─ Connexion LED principale
+└─ Tests fonctionnels
+
+ÉTAPE 6 : COMPARTIMENT BATTERIE
+├─ Impression compartiment (2h)
+├─ Installation ressort + contacts
+├─ Insertion batterie
+├─ Connexion câble JST au PCB
+└─ Fixation bouchon arrière
+
+ÉTAPE 7 : FINITIONS
+├─ Étanchéification (silicone)
+├─ Nettoyage
+├─ Tests finaux complets
+└─ ✓ Stylet terminé !
+
+DURÉE TOTALE : ~12h (dont 3h d'impression 3D)
+```
+
+---
+
+## 📊 COMPARATIF FINAL
+
+### PCB Circulaire vs Rectangulaire
+
+```
+Critère              Circulaire    Rectangulaire    Gagnant
+──────────────────────────────────────────────────────────────
+Surface PCB          254mm²        1050mm²          ✅ Rect
+Facilité routage     ★★☆☆☆         ★★★★★            ✅ Rect
+Assemblage CMS       ★★☆☆☆         ★★★★☆            ✅ Rect
+Coût PCB             10€           10€              ≈ Égal
+Coût mécanique       0€            5€               ⚠️ Circ
+Facilité montage     ★★☆☆☆         ★★★★☆            ✅ Rect
+Maintenance          ★☆☆☆☆         ★★★★☆            ✅ Rect
+Modularité           Non           Oui              ✅ Rect
+Longueur totale      100mm         140mm            ⚠️ Circ
+Poids                ~50g          ~55g             ≈ Égal
+Esthétique           Pro           Pro              ≈ Égal
+──────────────────────────────────────────────────────────────
+SCORE TOTAL          4/11          9/11             🏆 RECT
+```
+
+---
+
+## ✅ CONCLUSION & RECOMMANDATION
+
+### PCB RECTANGULAIRE 15×70mm = CHOIX OPTIMAL ✅
+
+**Raisons principales :**
+
+1. **Espace ×4** → Routage facile, fiabilité
+2. **Assemblage standard** → Pas d'expertise CMS avancée
+3. **Maintenance possible** → Durabilité long terme
+4. **Modularité** → Compartiment batterie séparé
+5. **Coût identique** → Pas de surcoût significatif
+
+**Seul inconvénient :** +40mm longueur (140mm total)
+→ **Toujours acceptable pour stylet médical**
+
+---
+
+## 🎯 PROCHAINES ÉTAPES
+
+### Votre parcours suggéré :
+
+**SEMAINE 1-2 : Breadboard**
+✅ Monter prototype breadboard (validation)
+✅ Commander composants (LED Nichia, etc.)
+
+**SEMAINE 3 : Design PCB**
+✅ Finaliser schéma 15×70mm
+✅ Router PCB (KiCad/EasyEDA)
+✅ Commander PCB JLCPCB
+
+**SEMAINE 4-5 : Attente livraison**
+✅ Imprimer rails + compartiment 3D
+✅ Préparer tube (perçages)
+
+**SEMAINE 6 : Assemblage**
+✅ Souder PCB
+✅ Programmer ATmega
+✅ Intégrer dans tube
+✅ Tests finaux
+
+**RÉSULTAT : Stylet professionnel fonctionnel ! 🎉**
+
+═══════════════════════════════════════════════════════════════

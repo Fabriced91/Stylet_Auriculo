@@ -1,0 +1,446 @@
+# ═══════════════════════════════════════════════════════════════
+#  BOM COMPLÈTE PCB FINAL v4.0 - Stylet Auriculothérapie
+# ═══════════════════════════════════════════════════════════════
+
+## 📋 BILL OF MATERIALS - COMPOSANTS PCB
+
+### MICROCONTRÔLEUR
+
+| Ref | Qté | Composant | Package | Valeur/Modèle | Fabricant | Référence exacte | Prix | Fournisseur |
+|-----|-----|-----------|---------|---------------|-----------|------------------|------|-------------|
+| U1 | 1 | Microcontrôleur | TQFP-32 | ATmega328P-AU | Microchip | ATMEGA328P-AU | 2.50€ | Digikey/Mouser |
+
+**Alternative :** ATmega328PB-AU (version améliorée, compatible)
+
+---
+
+### RÉGULATEURS & GESTION ALIMENTATION
+
+| Ref | Qté | Composant | Package | Valeur | Fabricant | Référence exacte | Prix | Fournisseur |
+|-----|-----|-----------|---------|--------|-----------|------------------|------|-------------|
+| U2 | 1 | LDO 3.3V | SOT-89 | HT7333-A | Holtek | HT7333-A | 0.40€ | Digikey/LCSC |
+| U3 | 1 | Chargeur LiPo | SOT23-6 | TP4056 | NanJing Top Power | TP4056 | 0.30€ | LCSC/AliExpress |
+| D1 | 1 | Diode Schottky | SOD-123 | SS14 (1A 40V) | Various | SS14 | 0.10€ | LCSC |
+| D2 | 1 | LED Charge (Rouge) | 0805 | Rouge | Various | - | 0.05€ | LCSC |
+| D3 | 1 | LED Standby (Vert) | 0805 | Vert | Various | - | 0.05€ | LCSC |
+
+**Notes :**
+- HT7333 peut être remplacé par AMS1117-3.3 (SOT-223)
+- TP4056 : Vérifier version SOT23-6 (pas DIP-8)
+
+---
+
+### TRANSISTORS
+
+| Ref | Qté | Composant | Package | Valeur | Fabricant | Référence exacte | Prix | Fournisseur |
+|-----|-----|-----------|---------|--------|-----------|------------------|------|-------------|
+| Q1 | 1 | MOSFET N-CH | SOT-23 | 2N7002 | ON Semi / Fairchild | 2N7002 | 0.15€ | Digikey/Mouser |
+
+**Alternative :** 
+- 2N7000 (TO-92 traversant pour breadboard)
+- BSS138 (SOT-23, similaire)
+
+---
+
+### RÉSISTANCES (CMS 0805)
+
+| Ref | Qté | Valeur | Tolérance | Puissance | Prix unit. | Total | Fournisseur |
+|-----|-----|--------|-----------|-----------|------------|-------|-------------|
+| R1 | 1 | 47Ω | 5% | 1/8W | 0.01€ | 0.01€ | LCSC |
+| R2 | 1 | 1kΩ | 5% | 1/8W | 0.01€ | 0.01€ | LCSC |
+| R3 | 1 | 470Ω | 5% | 1/8W | 0.01€ | 0.01€ | LCSC |
+| R4 | 1 | 470Ω | 5% | 1/8W | 0.01€ | 0.01€ | LCSC |
+| R5 | 1 | 470Ω | 5% | 1/8W | 0.01€ | 0.01€ | LCSC |
+| R6 | 1 | 470Ω | 5% | 1/8W | 0.01€ | 0.01€ | LCSC |
+| R7 | 1 | 10kΩ | 5% | 1/8W | 0.01€ | 0.01€ | LCSC |
+| R8 | 1 | 10kΩ | 5% | 1/8W | 0.01€ | 0.01€ | LCSC |
+| R9 | 1 | 10kΩ | 5% | 1/8W | 0.01€ | 0.01€ | LCSC |
+| R10 | 1 | 2kΩ | 5% | 1/8W | 0.01€ | 0.01€ | LCSC |
+
+**Total résistances : 0.10€**
+
+**Alternative :**
+- Kit résistances 0805 (100 valeurs, 10 pcs/valeur) : ~8€ sur AliExpress
+
+---
+
+### CONDENSATEURS (CMS 0805)
+
+| Ref | Qté | Valeur | Tension | Type | Prix unit. | Total | Fournisseur |
+|-----|-----|--------|---------|------|------------|-------|-------------|
+| C1 | 1 | 10µF | 16V | Céramique X7R | 0.05€ | 0.05€ | LCSC |
+| C2 | 1 | 100nF | 50V | Céramique X7R | 0.02€ | 0.02€ | LCSC |
+| C3 | 1 | 10µF | 16V | Céramique X7R | 0.05€ | 0.05€ | LCSC |
+| C4 | 1 | 100nF | 50V | Céramique X7R | 0.02€ | 0.02€ | LCSC |
+| C5 | 1 | 10µF | 16V | Céramique X7R | 0.05€ | 0.05€ | LCSC |
+| C6 | 1 | 100nF | 50V | Céramique X7R | 0.02€ | 0.02€ | LCSC |
+
+**Total condensateurs : 0.21€**
+
+**Alternative :**
+- Kit condensateurs 0805 : ~10€ sur AliExpress
+
+---
+
+### LED PRINCIPALE (Thérapeutique)
+
+| Ref | Qté | Composant | Package | Modèle | Fabricant | Specs | Prix | Fournisseur |
+|-----|-----|-----------|---------|--------|-----------|-------|------|-------------|
+| D4 | 1 | LED High CRI | 5mm traversant | NSPW500CS-K1 | Nichia | 660nm, CRI90+, 12-18lm | 1.20€ | Digikey |
+
+**Alternatives :**
+- NSPW310DS (Nichia, CRI 95+) : 1.50€
+- CREE C503B-WAN : 0.90€
+
+**Montage :** Câble flexible 30mm, connecteur JST-PH 2.0mm
+
+---
+
+### LED INDICATEURS (Traversant 3mm)
+
+| Ref | Qté | Composant | Couleur | Package | Luminosité | Prix unit. | Total | Fournisseur |
+|-----|-----|-----------|---------|---------|------------|------------|-------|-------------|
+| D5 | 1 | LED | Rouge | 3mm | 1000-2000mcd | 0.05€ | 0.05€ | LCSC/Stock |
+| D6 | 1 | LED | Vert | 3mm | 1000-2000mcd | 0.05€ | 0.05€ | LCSC/Stock |
+| D7 | 1 | LED | Bleu | 3mm | 1000-2000mcd | 0.05€ | 0.05€ | LCSC/Stock |
+| D8 | 1 | LED | Blanc | 3mm | 1000-2000mcd | 0.05€ | 0.05€ | LCSC/Stock |
+
+**Total LED indicateurs : 0.20€**
+
+**Notes :**
+- LED 3mm standard (pattes longues pour perçage latéral)
+- Angle de vue : 20-30° (directionnel)
+
+---
+
+### BOUTONS
+
+| Ref | Qté | Composant | Type | Package | Modèle | Prix unit. | Total | Fournisseur |
+|-----|-----|-----------|------|---------|--------|------------|-------|-------------|
+| SW1 | 1 | Bouton tactile | Side-mount | 4×4×1.5mm | TS-1185EC | 0.20€ | 0.20€ | LCSC |
+| SW2 | 1 | Bouton tactile | Side-mount | 4×4×1.5mm | TS-1185EC | 0.20€ | 0.20€ | LCSC |
+| SW3 | 1 | Bouton tactile | Side-mount | 4×4×1.5mm | TS-1185EC | 0.20€ | 0.20€ | LCSC |
+| SW4 | 1 | Interrupteur | Slide | SS12D00 7mm | SS12D00G3 | 0.30€ | 0.30€ | LCSC |
+
+**Total boutons/switches : 0.90€**
+
+**Référence exacte bouton tactile :**
+- TS-1185EC-C (LCSC : C318884)
+- Hauteur actuation : 0.25mm
+- Force : 160gf
+- Vie : 100,000 cycles
+
+---
+
+### CONNECTEURS
+
+| Ref | Qté | Composant | Type | Package | Modèle | Prix | Fournisseur |
+|-----|-----|-----------|------|---------|--------|------|-------------|
+| J1 | 1 | Micro-USB | SMD/Edge | Type B | Micro-USB-B-SMD | 0.30€ | LCSC |
+| J2 | 1 | Connecteur batterie | Wire to board | JST PH 2.0mm 2P | S2B-PH-K-S | 0.10€ | LCSC |
+| J3 | 1 | Connecteur LED | Wire to board | JST PH 2.0mm 2P | S2B-PH-K-S | 0.10€ | LCSC |
+
+**Total connecteurs : 0.50€**
+
+**Alternative :**
+- Soudure directe câbles (sans connecteur) : Gratuit mais moins pratique
+
+---
+
+### PROGRAMMATION (Optionnel)
+
+| Ref | Qté | Composant | Type | Pitch | Prix | Fournisseur |
+|-----|-----|-----------|------|-------|------|-------------|
+| J4 | 1 | Header ISP | 2×3 pins | 2.54mm | 0.20€ | LCSC |
+
+**Note :** Peut être remplacé par pads de test (gratuit)
+
+---
+
+### BATTERIE
+
+| Ref | Qté | Composant | Format | Capacité | Voltage | Protection | Prix | Fournisseur |
+|-----|-----|-----------|--------|----------|---------|------------|------|-------------|
+| BAT1 | 1 | LiPo | 10440 cylindrique | 500mAh | 3.7V | Avec PCM | 4.00€ | AliExpress |
+
+**Références recommandées :**
+- EEMB 10440 500mAh avec protection
+- Dimensions : Ø10.5×44mm
+- Sortie : Câble + connecteur JST-PH 2.0mm
+
+**Alternatives :**
+- LiPo rectangulaire 502035 (5×20×35mm, 300mAh) : 3.50€
+
+---
+
+### MÉCANIQUE & OPTIQUE
+
+| Ref | Qté | Composant | Matériau | Dimensions | Prix | Fournisseur |
+|-----|-----|-----------|----------|------------|------|-------------|
+| - | 1 | Tube stylet | Aluminium | Ø20×100mm | 5.00€ | Bricolage/Tournage |
+| - | 1 | Embout conique | Inox | Ø2mm, L=10mm | 1.00€ | Tournage |
+| - | 1 | Fibre optique | PMMA | Ø2mm, L=40mm | 0.50€ | AliExpress |
+| - | 1 | Bouchon arrière | Plastique/Alu | Ø20mm | 0.50€ | Impression 3D |
+
+**Total mécanique : 7.00€**
+
+---
+
+### PCB
+
+| Ref | Qté | Description | Specs | Prix | Fournisseur |
+|-----|-----|-------------|-------|------|-------------|
+| - | 1 | PCB custom | Ø18mm, 2L, ENIG | 2.00€ | JLCPCB (lot 5) |
+
+**Note :** Prix pour 1 unité dans un lot de 5 PCB
+
+---
+
+## 💰 RÉCAPITULATIF COÛTS
+
+### Composants électroniques seuls
+
+| Catégorie | Prix unitaire |
+|-----------|---------------|
+| Microcontrôleur | 2.50€ |
+| Régulateurs & alim | 0.90€ |
+| Transistor | 0.15€ |
+| Résistances (×10) | 0.10€ |
+| Condensateurs (×6) | 0.21€ |
+| LED Nichia | 1.20€ |
+| LED indicateurs (×4) | 0.20€ |
+| Boutons/switches (×4) | 0.90€ |
+| Connecteurs | 0.50€ |
+| Batterie | 4.00€ |
+| PCB | 2.00€ |
+| Mécanique | 7.00€ |
+| **TOTAL** | **~19.66€** |
+
+### Options supplémentaires
+
+| Option | Prix |
+|--------|------|
+| + Assemblage CMS (si commande fab) | +3-5€ |
+| + Boîtier custom imprimé 3D | +2€ |
+| + Câbles & connecteurs premium | +1€ |
+| + Mallette de rangement | +5€ |
+
+---
+
+## 📦 COMMANDE GROUPÉE (lot de 5 stylets)
+
+### Prix dégressif
+
+| Quantité | Prix composants | Prix PCB | Prix total | Prix/unité |
+|----------|-----------------|----------|------------|------------|
+| 1 unité | 17.66€ | 10€ (5 PCB) | 27.66€ | 27.66€ |
+| 5 unités | 88€ | 10€ (5 PCB) | 98€ | **19.60€** |
+| 10 unités | 176€ | 15€ (10 PCB) | 191€ | **19.10€** |
+
+**Économie à partir de 5 unités !**
+
+---
+
+## 🛒 LIENS D'ACHAT DIRECTS
+
+### LCSC Electronics (Chine, livraison 7-15j)
+
+**Lien boutique :** https://www.lcsc.com
+
+**Panier suggéré (composants CMS) :**
+```
+ATmega328P-AU (C14877) : 2.50€
+HT7333-A (C21583) : 0.40€
+TP4056 SOT23-6 (C32574) : 0.30€
+2N7002 (C8545) : 0.15€
+Résistances 0805 kit (C328340) : 8€ (pour stock)
+Condensateurs 0805 kit (C328383) : 10€ (pour stock)
+Boutons TS-1185EC (C318884) : 0.20€ × 3
+Switch SS12D00 (C221841) : 0.30€
+
+Frais de port : 3-5€
+Total : ~30€ pour 1 stylet + stock composants
+```
+
+### Digikey France (Livraison 2-3j)
+
+**Lien boutique :** https://www.digikey.fr
+
+**Panier prioritaire :**
+```
+LED Nichia NSPW500CS-K1 : 1.20€
+ATmega328P-AU : 3.00€
+Composants passifs (si besoin urgent)
+
+Frais de port : 4.99€
+Total : ~10€ pour composants critiques
+```
+
+### AliExpress (Économique, livraison 15-30j)
+
+**Lien boutique :** https://fr.aliexpress.com
+
+**Recherches suggérées :**
+```
+"LiPo 10440 500mAh protected" → Batterie
+"PMMA fiber optic 2mm" → Fibre optique
+"Aluminum tube 20mm" → Tube stylet
+"JST PH 2.0 connector" → Connecteurs
+
+Prix total : ~15€ avec port gratuit
+```
+
+---
+
+## 📊 COMPARAISON FOURNISSEURS
+
+| Fournisseur | Prix | Délai | Qualité | Recommandation |
+|-------------|------|-------|---------|----------------|
+| **LCSC** | ★★★★★ | 7-15j | ★★★★☆ | ✅ Meilleur rapport qualité/prix |
+| **Digikey** | ★★☆☆☆ | 2-3j | ★★★★★ | ✅ Si urgent ou qualité max |
+| **Mouser** | ★★☆☆☆ | 2-4j | ★★★★★ | Alternative Digikey |
+| **AliExpress** | ★★★★★ | 15-30j | ★★★☆☆ | ✅ Mécanique & batterie |
+| **Amazon** | ★★★☆☆ | 1-2j | ★★★☆☆ | Si très urgent |
+
+---
+
+## ✅ CHECKLIST COMMANDE
+
+```
+COMPOSANTS PRIORITAIRES (à commander en premier) :
+□ LED Nichia NSPW500CS (Digikey)
+□ ATmega328P-AU (LCSC ou Digikey)
+□ Batterie LiPo 10440 (AliExpress)
+□ PCB custom (JLCPCB - voir section suivante)
+
+COMPOSANTS STANDARD (flexibles) :
+□ Résistances 0805 kit (LCSC)
+□ Condensateurs 0805 kit (LCSC)
+□ LED 3mm standard (Stock ou LCSC)
+□ Boutons tactiles (LCSC)
+
+MÉCANIQUE (peut attendre) :
+□ Tube aluminium Ø20mm (Bricolage local)
+□ Fibre optique 2mm (AliExpress)
+□ Embout conique (Tournage local ou imprimé 3D)
+
+TOTAL ESTIMÉ : 50-60€ pour 1 prototype complet
+                (incluant stock composants pour 2-3 unités)
+```
+
+---
+
+## 🏭 FABRICATION PCB
+
+### JLCPCB (Recommandé)
+
+**Lien :** https://jlcpcb.com
+
+**Spécifications commande :**
+```
+PCB Dimensions : Circular Ø18mm
+PCB Thickness : 1.6mm
+PCB Qty : 5 pcs
+PCB Color : Black
+Surface Finish : ENIG (or HASL lead-free)
+Copper Weight : 1 oz
+Material : FR-4 TG155
+
+Options :
+☑ Remove Order Number
+☐ Castellated Holes (si nécessaire)
+
+Prix : ~5-10€ + port 5€
+Délai : 5-7 jours
+```
+
+**Option assemblage (+15-25€) :**
+```
+☑ SMT Assembly
+☑ Assemble top side
+Components to place : ~20 pcs
+
+Uploader :
+- Gerber files
+- BOM (format Excel)
+- CPL (Component Placement List)
+```
+
+### PCBWay (Alternative)
+
+**Lien :** https://www.pcbway.com
+
+Prix similaire, qualité légèrement supérieure
+Options assemblage plus flexibles
+
+---
+
+## 📝 NOTES IMPORTANTES
+
+### Substitutions possibles
+
+**Microcontrôleur :**
+- ATmega328P-AU → ATmega328PB-AU (version améliorée)
+- ATmega328P-AU → ATmega168P-AU (moins de mémoire, ~1€)
+
+**Régulateur 3.3V :**
+- HT7333-A → AMS1117-3.3 (SOT-223, plus gros)
+- HT7333-A → MCP1700-3302E (SOT-23, plus compact)
+
+**MOSFET :**
+- 2N7002 → BSS138 (équivalent)
+- 2N7002 → AO3400A (meilleure performance)
+
+**LED Nichia :**
+- NSPW500CS → NSPW310DS (CRI 95+, meilleur spectre)
+- NSPW500CS → CREE C503B-WAN (moins cher, CRI 90)
+
+### Composants optionnels
+
+**Peut être supprimé si budget serré :**
+- LED charge/standby TP4056 (feedback visuel charge)
+- LED Mode (indicateur modulation)
+- Header ISP (remplacer par pads de test)
+- Connecteurs JST (remplacer par soudure directe)
+
+**Économie possible : ~1€**
+
+---
+
+## 🎯 STRATÉGIE D'ACHAT RECOMMANDÉE
+
+### Pour 1 prototype de test :
+
+**Semaine 1 :**
+1. Commander PCB chez JLCPCB (5-10€)
+2. Commander composants critiques Digikey (15€)
+   - LED Nichia
+   - ATmega328P-AU
+
+**Semaine 2 :**
+3. Commander composants standard LCSC (20€)
+4. Commander batterie + mécanique AliExpress (15€)
+
+**Semaine 3-4 :**
+5. Réception PCB → Tester sur breadboard d'abord
+6. Assemblage PCB quand tous composants reçus
+
+**Budget total : ~60€ pour 1 prototype fonctionnel**
+
+### Pour production série (5-10 unités) :
+
+**Option A - Assemblage manuel :**
+- Commander PCB ×10 (15€)
+- Commander composants ×10 avec dégressif (150€)
+- Assembler soi-même (temps : ~3h/unité)
+- **Total : ~165€ → 16.50€/unité**
+
+**Option B - Assemblage pro :**
+- Commander PCB assemblé ×10 (250€)
+- Commander composants complémentaires (50€)
+- Assemblage final uniquement (1h/unité)
+- **Total : ~300€ → 30€/unité**
+
+**Recommandation : Assemblage manuel si <10 unités**
+
+═══════════════════════════════════════════════════════════════
