@@ -1,0 +1,625 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                                                                            ║
+║  SCHÉMA ÉLECTRONIQUE COMPLET - STYLET AURICULOTHÉRAPIE v8.0               ║
+║  Architecture ATmega328P-AU avec ÉCRAN OLED I2C                            ║
+║                                                                            ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+⭐ NOUVEAUTÉS v8.0 :
+  ✅ Écran OLED SSD1306 128×32 I2C (adresse 0x3C)
+  ✅ Connecteur JST-4 pour câble OLED
+  ✅ Bouton MENU supplémentaire (PB0/D8)
+  ✅ Interface I2C partagée (PCF8574 + OLED)
+  ✅ Modulation fréquences Nogier réactivée
+
+══════════════════════════════════════════════════════════════════════════════
+  📋 SYNOPTIQUE GÉNÉRAL
+══════════════════════════════════════════════════════════════════════════════
+
+                     BATTERIE Li-Ion 3.7V (2000mAh)
+                              │
+                              ├──────┐
+                              │      │
+                   ┌──────────┴───┐  │ (diviseur R8/R9)
+                   │              │  │
+                   │  LDO 3.3V    │  └──> PC0 (A0) Mesure Batterie
+                   │  MCP1700T    │
+                   │              │
+                   └──────┬───────┘
+                          │ +3.3V
+         ┌────────────────┼──────────────────────────────┐
+         │                │                              │
+         │                │                              │
+   ┌─────┴─────┐    ┌─────┴─────┐              ┌────────┴────────┐
+   │           │    │           │              │                 │
+   │  OLED     │    │  PCF8574T │              │  ATmega328P-AU  │
+   │  128x32   │    │  I2C      │              │                 │
+   │  @0x3C    │    │  @0x20    │              │  8MHz, 3.3V     │
+   │           │    │           │              │                 │
+   └─────┬─────┘    └─────┬─────┘              └────────┬────────┘
+         │                │                              │
+         │  SDA/SCL       │  SDA/SCL                     │ SDA/SCL
+         │  (pull-ups     │  (pull-ups                   │ (PC4/PC5)
+         │   4.7kΩ)       │   4.7kΩ)                     │
+         │                │                              │
+         └────────────────┴──────────────────────────────┘
+                            BUS I2C
+
+
+══════════════════════════════════════════════════════════════════════════════
+  🔌 U1 : ATmega328P-AU (TQFP-32)
+══════════════════════════════════════════════════════════════════════════════
+
+PIN  | NOM       | FONCTION                    | CONNEXION
+─────┼───────────┼─────────────────────────────┼────────────────────────────
+ 1   | PD3/OC2B  | PWM LED principale          | LED Nichia NSPW500CS (R1)
+ 2   | PD4       | Bouton MODE                 | SW2 + Pull-up interne
+ 3   | GND       | Masse                       | GND
+ 4   | VCC       | Alimentation                | +3.3V (via C1 100nF)
+ 5   | GND       | Masse                       | GND
+ 6   | VCC       | Alimentation                | +3.3V
+ 7   | PB6       | Cristal 8MHz                | XTAL1 (via C5 22pF)
+ 8   | PB7       | Cristal 8MHz                | XTAL2 (via C6 22pF)
+ 9   | PD5       | ⚠️ Non connecté             | NC (flag NC)
+ 10  | PD6       | ⚠️ Non connecté             | NC (flag NC)
+ 11  | PD7       | ⚠️ Non connecté             | NC (flag NC)
+ 12  | PB0       | 🆕 Bouton MENU (v8.0)       | SW3 + Pull-up interne
+ 13  | PB1       | ⚠️ Non connecté             | NC (flag NC)
+ 14  | PB2       | ⚠️ Non connecté             | NC (flag NC)
+ 15  | PB3/MOSI  | Programmation ISP           | J1 Pin 4
+ 16  | PB4/MISO  | Programmation ISP           | J1 Pin 1
+ 17  | PB5/SCK   | Programmation ISP           | J1 Pin 3
+ 18  | AVCC      | Alim analogique             | +3.3V (via C4 100nF)
+ 19  | ADC6      | ⚠️ Non utilisé              | NC (flag NC)
+ 20  | AREF      | Référence ADC               | Condensateur C3 100nF → GND
+ 21  | GND       | Masse                       | GND
+ 22  | ADC7      | ⚠️ Non utilisé              | NC (flag NC)
+ 23  | PC0/ADC0  | Mesure tension batterie     | Diviseur R8/R9 (100kΩ/33kΩ)
+ 24  | PC1       | ⚠️ Non connecté             | NC (flag NC)
+ 25  | PC2       | ⚠️ Non connecté             | NC (flag NC)
+ 26  | PC3       | ⚠️ Non connecté             | NC (flag NC)
+ 27  | PC4/SDA   | I2C Data                    | SDA (PCF8574 + OLED)
+ 28  | PC5/SCL   | I2C Clock                   | SCL (PCF8574 + OLED)
+ 29  | PC6/RESET | Reset                       | J1 Pin 5 + R6 (10kΩ pull-up)
+ 30  | PD0/RXD   | ⚠️ Non connecté             | NC (flag NC)
+ 31  | PD1/TXD   | ⚠️ Non connecté             | NC (flag NC)
+ 32  | PD2/INT0  | Bouton FREQ (interruption)  | SW1 + Pull-up interne
+
+NOTES :
+  - Cristal 8MHz obligatoire (PB6/PB7) avec condensateurs 22pF
+  - AVCC et VCC connectés à +3.3V (pas de séparation)
+  - AREF : condensateur 100nF pour stabilisation
+  - Tous les pins NC marqués avec flag "No Connect" dans KiCad
+
+
+══════════════════════════════════════════════════════════════════════════════
+  🔌 U2 : PCF8574T (SOIC-16) - Expandeur I2C
+══════════════════════════════════════════════════════════════════════════════
+
+PIN | NOM   | FONCTION                  | CONNEXION
+────┼───────┼───────────────────────────┼──────────────────────────────────
+ 1  | A0    | Adresse I2C bit 0         | GND (adresse 0x20)
+ 2  | A1    | Adresse I2C bit 1         | GND (adresse 0x20)
+ 3  | A2    | Adresse I2C bit 2         | GND (adresse 0x20)
+ 4  | P0    | Sortie 0                  | LED Rouge (via R3 470Ω)
+ 5  | P1    | Sortie 1                  | LED Verte (via R4 470Ω)
+ 6  | P2    | Sortie 2                  | LED Bleue (via R5 470Ω)
+ 7  | P3    | Sortie 3                  | ⚠️ Non connecté (flag NC)
+ 8  | VSS   | Masse                     | GND
+ 9  | P4    | Sortie 4                  | ⚠️ Non connecté (flag NC)
+10  | P5    | Sortie 5                  | ⚠️ Non connecté (flag NC)
+11  | P6    | Sortie 6                  | ⚠️ Non connecté (flag NC)
+12  | P7    | Sortie 7                  | ⚠️ Non connecté (flag NC)
+13  | INT   | Interruption (active LOW) | ⚠️ Non connecté (flag NC)
+14  | SCL   | I2C Clock                 | SCL (bus I2C, pull-up 4.7kΩ)
+15  | SDA   | I2C Data                  | SDA (bus I2C, pull-up 4.7kΩ)
+16  | VDD   | Alimentation              | +3.3V (via C2 100nF)
+
+CONFIGURATION ADRESSE :
+  A0=A1=A2=GND → Adresse I2C = 0x20 (0100000 en binaire)
+
+
+══════════════════════════════════════════════════════════════════════════════
+  🔌 U3 : MCP1700T-3302E-TT (SOT-23-3) - Régulateur LDO 3.3V
+══════════════════════════════════════════════════════════════════════════════
+
+PIN | NOM   | FONCTION                  | CONNEXION
+────┼───────┼───────────────────────────┼──────────────────────────────────
+ 1  | GND   | Masse                     | GND
+ 2  | VOUT  | Sortie 3.3V               | +3.3V (via C8 1µF)
+ 3  | VIN   | Entrée batterie           | VBAT (via C7 1µF)
+
+NOTES :
+  - Tension entrée : 3.7V nominal (Li-Ion)
+  - Tension sortie : 3.3V régulée
+  - Courant max    : 250mA (largement suffisant)
+  - Dropout        : 178mV @ 250mA
+  - C7 : condensateur entrée 1µF (céramique)
+  - C8 : condensateur sortie 1µF (céramique)
+
+
+══════════════════════════════════════════════════════════════════════════════
+  🆕 J3 : CONNECTEUR OLED (JST-4) - NOUVEAU v8.0
+══════════════════════════════════════════════════════════════════════════════
+
+PIN | NOM   | FONCTION                  | CONNEXION
+────┼───────┼───────────────────────────┼──────────────────────────────────
+ 1  | GND   | Masse                     | GND
+ 2  | VCC   | Alimentation 3.3V         | +3.3V
+ 3  | SCL   | I2C Clock                 | SCL (bus I2C partagé)
+ 4  | SDA   | I2C Data                  | SDA (bus I2C partagé)
+
+ÉCRAN CONNECTÉ :
+  - Modèle   : OLED SSD1306 0.91" 128×32
+  - Interface: I2C
+  - Adresse  : 0x3C (fixe)
+  - Couleur  : Blanc/Bleu (selon modèle)
+  - Cable    : 4 fils, longueur 10cm
+
+⚠️ IMPORTANT :
+  Le câble OLED doit avoir le bon ordre de pins :
+    Côté PCB : GND-VCC-SCL-SDA
+    Côté OLED: vérifier datasheet (parfois inversé !)
+
+
+══════════════════════════════════════════════════════════════════════════════
+  🔘 BOUTONS (SWITCHES)
+══════════════════════════════════════════════════════════════════════════════
+
+SW1 - Bouton FREQ (Changement fréquence)
+  Pin 1 : PD2 (ATmega328P pin 32)
+  Pin 2 : GND
+  Type  : SPST momentané (6×6mm, traversant)
+  Config: Pull-up interne ATmega (INPUT_PULLUP)
+  ISR   : INT0 sur FALLING edge
+
+SW2 - Bouton MODE (Changement mode)
+  Pin 1 : PD4 (ATmega328P pin 2)
+  Pin 2 : GND
+  Type  : SPST momentané (6×6mm, traversant)
+  Config: Pull-up interne ATmega (INPUT_PULLUP)
+
+🆕 SW3 - Bouton MENU (Navigation menu OLED) - NOUVEAU v8.0
+  Pin 1 : PB0 (ATmega328P pin 12)
+  Pin 2 : GND
+  Type  : SPST momentané (6×6mm, traversant)
+  Config: Pull-up interne ATmega (INPUT_PULLUP)
+
+
+══════════════════════════════════════════════════════════════════════════════
+  💡 LED PRINCIPALE
+══════════════════════════════════════════════════════════════════════════════
+
+D1 - LED Nichia NSPW500CS
+  Anode  : +3.3V
+  Cathode: PD3 (via R1 100Ω)
+  
+  Caractéristiques :
+    - CRI : >90 (rendu couleur naturel)
+    - Blanc chaud : 3200K
+    - Tension directe : 3.0-3.4V
+    - Courant max : 30mA
+    - Boîtier : 5mm traversant (LED_D5.0mm)
+    
+  Calcul résistance R1 :
+    Vf = 3.2V (typique)
+    If_max = 20mA (traitement)
+    R = (Vcc - Vf) / If = (3.3 - 3.2) / 0.020 = 5Ω minimum
+    
+    ⚠️ UTILISATION PWM : R1 = 100Ω
+       → Duty cycle ajuste le courant moyen
+       → Détection : 25% = 5mA
+       → Traitement: 92% = 20mA
+
+
+══════════════════════════════════════════════════════════════════════════════
+  🎨 LEDS RGB (Indicateurs fréquence)
+══════════════════════════════════════════════════════════════════════════════
+
+D2 - LED Rouge SMD 0805
+  Anode  : PCF8574 P0 (pin 4)
+  Cathode: GND (via R3 470Ω)
+  Vf     : 2.0V, If = 2mA
+
+D3 - LED Verte SMD 0805
+  Anode  : PCF8574 P1 (pin 5)
+  Cathode: GND (via R4 470Ω)
+  Vf     : 3.2V, If = 2mA
+
+D4 - LED Bleue SMD 0805
+  Anode  : PCF8574 P2 (pin 6)
+  Cathode: GND (via R5 470Ω)
+  Vf     : 3.2V, If = 2mA
+
+CALCUL RÉSISTANCES (R3, R4, R5) :
+  R = (Vcc - Vf) / If
+  R_rouge = (3.3 - 2.0) / 0.002 = 650Ω → normalisé 470Ω (If ≈ 2.8mA)
+  R_verte = (3.3 - 3.2) / 0.002 = 50Ω  → normalisé 470Ω (If ≈ 0.2mA)
+  R_bleue = (3.3 - 3.2) / 0.002 = 50Ω  → normalisé 470Ω (If ≈ 0.2mA)
+  
+  ⚠️ Valeur unique 470Ω pour toutes (simplicité BOM)
+
+
+══════════════════════════════════════════════════════════════════════════════
+  🔋 ALIMENTATION & MESURE BATTERIE
+══════════════════════════════════════════════════════════════════════════════
+
+J2 - Connecteur Batterie (JST 2.0mm)
+  Pin 1 : +VBAT (3.7V nominal)
+  Pin 2 : GND
+
+DIVISEUR RÉSISTIF (Mesure tension batterie)
+  VBAT ─┬─ R8 (100kΩ) ─┬─ R9 (33kΩ) ─┬─ GND
+        │              │              │
+        │              └──> PC0 (A0)  │
+        │                             │
+        └─> VIN (LDO U3 pin 3)        │
+
+  Calcul tension mesurée :
+    V_PC0 = VBAT × R9 / (R8 + R9)
+    V_PC0 = 4.2V × 33kΩ / 133kΩ = 1.04V  (batterie pleine)
+    V_PC0 = 3.0V × 33kΩ / 133kΩ = 0.74V  (batterie vide)
+    
+    → Plage ADC : 0.74V - 1.04V (bien en dessous 3.3V)
+  
+  Courant diviseur :
+    I = VBAT / (R8 + R9) = 4.2V / 133kΩ = 31.6µA (négligeable)
+
+
+══════════════════════════════════════════════════════════════════════════════
+  🔗 BUS I2C & PULL-UPS
+══════════════════════════════════════════════════════════════════════════════
+
+RÉSISTANCES PULL-UP (montage parallèle pour flexibilité) :
+
+R2a - Pull-up SDA (4.7kΩ)
+  Pin 1 : SDA (net SDA)
+  Pin 2 : +3.3V
+
+R2b - Pull-up SCL (4.7kΩ)
+  Pin 1 : SCL (net SCL)
+  Pin 2 : +3.3V
+
+⚠️ ALTERNATIVE : Une seule résistance 2.2kΩ sur chaque ligne (équivalent parallèle)
+
+CALCUL RÉSISTANCE PULL-UP :
+  R_pullup = (Vcc - Vol) / (Isink_total)
+  
+  Avec :
+    - Vcc = 3.3V
+    - Vol = 0.4V (tension LOW I2C standard)
+    - Isink = 3mA par périphérique × 2 = 6mA
+    
+  R_pullup_min = (3.3 - 0.4) / 0.006 = 483Ω  → Sécurité : 2.2kΩ OK
+  R_pullup_max = 1000 / (400pF × 100kHz) = 25kΩ  → 4.7kΩ OK
+  
+  Valeur choisie : 4.7kΩ (standard I2C, fréquence 100kHz)
+
+PÉRIPHÉRIQUES I2C :
+  1. PCF8574T  @ 0x20 (U2)
+  2. 🆕 OLED SSD1306 @ 0x3C (J3) - NOUVEAU v8.0
+
+
+══════════════════════════════════════════════════════════════════════════════
+  🔌 J1 : CONNECTEUR ISP (Programmation ATmega328P)
+══════════════════════════════════════════════════════════════════════════════
+
+Connecteur : 2×3 pins (PinHeader_2x03_P2.54mm)
+
+PIN | NOM   | FONCTION                  | CONNEXION
+────┼───────┼───────────────────────────┼──────────────────────────────────
+ 1  | MISO  | Master In Slave Out       | PB4 (ATmega pin 16)
+ 2  | VCC   | Alimentation prog         | +3.3V
+ 3  | SCK   | Serial Clock              | PB5 (ATmega pin 17)
+ 4  | MOSI  | Master Out Slave In       | PB3 (ATmega pin 15)
+ 5  | RESET | Reset microcontrôleur     | PC6 (ATmega pin 29)
+ 6  | GND   | Masse                     | GND
+
+⚠️ PROGRAMMATION :
+  - Programmateur : USBasp ou Arduino as ISP
+  - Tension : 3.3V obligatoire (pas 5V !)
+  - Fuses : 
+      Low  : 0xFF (8MHz cristal, slow rising power)
+      High : 0xDA (SPI enabled, boot 2048 words)
+      Ext  : 0xFD (BOD 2.7V)
+
+
+══════════════════════════════════════════════════════════════════════════════
+  🛠️ CONDENSATEURS DE DÉCOUPLAGE
+══════════════════════════════════════════════════════════════════════════════
+
+C1 - 100nF (ATmega328P VCC pin 4)
+  Pin 1 : VCC
+  Pin 2 : GND
+  Boîtier : 0805
+
+C2 - 100nF (PCF8574 VDD pin 16)
+  Pin 1 : VDD (+3.3V)
+  Pin 2 : VSS (GND)
+  Boîtier : 0805
+
+C3 - 100nF (ATmega328P AREF pin 20)
+  Pin 1 : AREF
+  Pin 2 : GND
+  Boîtier : 0805
+
+C4 - 100nF (ATmega328P AVCC pin 18)
+  Pin 1 : AVCC
+  Pin 2 : GND
+  Boîtier : 0805
+
+C5 - 22pF (Cristal XTAL1)
+  Pin 1 : PB6 (ATmega pin 7)
+  Pin 2 : GND
+  Boîtier : 0805
+
+C6 - 22pF (Cristal XTAL2)
+  Pin 1 : PB7 (ATmega pin 8)
+  Pin 2 : GND
+  Boîtier : 0805
+
+C7 - 1µF (LDO MCP1700 entrée)
+  Pin 1 : VBAT (U3 pin 3)
+  Pin 2 : GND
+  Boîtier : 0805
+
+C8 - 1µF (LDO MCP1700 sortie)
+  Pin 1 : +3.3V (U3 pin 2)
+  Pin 2 : GND
+  Boîtier : 0805
+
+RÈGLES DE PLACEMENT :
+  - Condensateurs découplage VCC/GND : au plus près du pin VCC (< 5mm)
+  - Condensateurs cristal : au plus près du cristal
+  - Condensateurs LDO : au plus près de U3
+
+
+══════════════════════════════════════════════════════════════════════════════
+  ⚡ LISTE DES NETS (Connexions)
+══════════════════════════════════════════════════════════════════════════════
+
++3.3V  : Alimentation régulée (sortie LDO U3)
+  Connecté à :
+    - U1 VCC (pins 4, 6)
+    - U1 AVCC (pin 18)
+    - U2 VDD (pin 16)
+    - J1 VCC (pin 2)
+    - 🆕 J3 VCC (pin 2) - OLED
+    - R2a, R2b (pull-ups I2C)
+    - D1 anode
+    - C1, C4, C8 (découplages)
+
+VBAT : Tension batterie non régulée (3.7V)
+  Connecté à :
+    - J2 Pin 1
+    - U3 VIN (pin 3)
+    - R8 (diviseur batterie)
+
+GND : Masse commune
+  Connecté à :
+    - Tous les pins GND des composants
+    - J1 GND (pin 6)
+    - J2 GND (pin 2)
+    - 🆕 J3 GND (pin 1) - OLED
+    - Plan de masse (zones cuivre F.Cu + B.Cu)
+
+SDA : I2C Data
+  Connecté à :
+    - U1 PC4 (pin 27)
+    - U2 SDA (pin 15)
+    - 🆕 J3 SDA (pin 4) - OLED
+    - R2a (pull-up 4.7kΩ)
+
+SCL : I2C Clock
+  Connecté à :
+    - U1 PC5 (pin 28)
+    - U2 SCL (pin 14)
+    - 🆕 J3 SCL (pin 3) - OLED
+    - R2b (pull-up 4.7kΩ)
+
+LED_MAIN : Commande LED principale (PWM)
+  Connecté à :
+    - U1 PD3 (pin 1)
+    - D1 cathode (via R1)
+
+BTN_FREQ : Bouton fréquence
+  Connecté à :
+    - U1 PD2 (pin 32)
+    - SW1 Pin 1
+
+BTN_MODE : Bouton mode
+  Connecté à :
+    - U1 PD4 (pin 2)
+    - SW2 Pin 1
+
+🆕 BTN_MENU : Bouton menu (v8.0)
+  Connecté à :
+    - U1 PB0 (pin 12)
+    - SW3 Pin 1
+
+VBAT_SENSE : Mesure tension batterie
+  Connecté à :
+    - U1 PC0 (pin 23)
+    - Point milieu diviseur R8/R9
+
+
+══════════════════════════════════════════════════════════════════════════════
+  📐 CONTRAINTES PCB (16×70mm)
+══════════════════════════════════════════════════════════════════════════════
+
+COUCHES :
+  - 2 couches (F.Cu + B.Cu)
+  - Épaisseur : 1.6mm standard
+  - Finition : ENIG (or chimique) recommandée
+
+ZONES CUIVRE (Plans de masse) :
+  - F.Cu : Zone GND priorité 1
+  - B.Cu : Zone GND priorité 1
+  - Connexion : Vias thermiques
+
+CLEARANCES :
+  - Trace → Trace : 0.2mm minimum
+  - Trace → Zone  : 0.2mm minimum
+  - Via pad       : 0.8mm diamètre, trou 0.4mm
+
+LARGEUR PISTES :
+  - Signaux       : 0.3mm
+  - +3.3V        : 0.5mm
+  - VBAT         : 0.5mm
+  - GND (traces) : 0.5mm
+
+PLACEMENT COMPOSANTS :
+  Face avant (F.Cu) :
+    - U1 (ATmega328P-AU) centré
+    - U2 (PCF8574T) à gauche
+    - U3 (MCP1700T) en haut
+    - LEDs RGB (D2, D3, D4) alignées
+    - Tous les SMD 0805
+
+  Face arrière (B.Cu) :
+    - Boutons SW1, SW2, 🆕 SW3 (traversants)
+    - LED principale D1 (traversant)
+    - Connecteurs J1, J2, 🆕 J3 (traversants)
+    - Cristal Y1
+
+
+══════════════════════════════════════════════════════════════════════════════
+  🔧 MODIFICATIONS KiCad POUR v8.0
+══════════════════════════════════════════════════════════════════════════════
+
+AJOUTS SCHÉMATIQUE :
+  1. Ajouter SW3 (bouton MENU) :
+     - Symbole : SW_PUSH
+     - Footprint : SW_SPST_6x6mm_TH
+     - Pin 1 → PB0 (U1 pin 12)
+     - Pin 2 → GND
+  
+  2. Ajouter J3 (connecteur OLED) :
+     - Symbole : Conn_01x04
+     - Footprint : PinHeader_1x04_P2.54mm_Vertical ou JST_XH_B4B
+     - Pin 1 (GND) → GND
+     - Pin 2 (VCC) → +3.3V
+     - Pin 3 (SCL) → SCL (net existant)
+     - Pin 4 (SDA) → SDA (net existant)
+  
+  3. Modifier flag "NC" sur PB0 :
+     - U1 pin 12 : SUPPRIMER le flag "No Connect"
+     - Connecter à SW3
+
+VÉRIFICATIONS ERC :
+  ✅ Pas de nouveau "Pin not connected" (PB0 maintenant utilisé)
+  ✅ SDA/SCL bien partagés entre 3 composants (U1, U2, J3)
+  ✅ Pull-ups toujours présents (R2a, R2b)
+
+AJOUTS PCB :
+  1. Placer SW3 :
+     - Position : entre SW1 et SW2 (alignement)
+     - Face : B.Cu (arrière)
+  
+  2. Placer J3 :
+     - Position : bord supérieur PCB (côté LED principale)
+     - Orientation : pins vers extérieur
+     - Face : F.Cu (avant) ou B.Cu (selon préférence)
+  
+  3. Router nouvelles pistes :
+     - PB0 → SW3
+     - J3 pins → nets existants (GND, +3.3V, SDA, SCL)
+
+VÉRIFICATIONS DRC :
+  ✅ Clearances respectées
+  ✅ Pas de pistes non connectées
+  ✅ Zones GND mises à jour (vias ajoutés si besoin)
+
+
+══════════════════════════════════════════════════════════════════════════════
+  📊 BILAN CONSOMMATION v8.0
+══════════════════════════════════════════════════════════════════════════════
+
+DÉTECTION (Mode 1) avec OLED actif :
+  - ATmega328P @ 8MHz    : 4mA
+  - PCF8574              : 0.5mA
+  - LED principale (25%) : 5mA
+  - LEDs RGB (1 active)  : 2mA
+  - 🆕 OLED SSD1306      : 15mA (actif)
+  - LDO quiescent        : 1.6µA (négligeable)
+  ─────────────────────────────────
+  TOTAL DÉTECTION        : 26.5mA  → Autonomie = 2000mAh / 26.5mA ≈ 75h
+
+DÉTECTION avec OLED éteint (après 10s) :
+  - Total sans OLED      : 11.5mA → Autonomie = 2000mAh / 11.5mA ≈ 174h
+  
+  📊 AUTONOMIE MIXTE (70% éteint, 30% allumé) :
+     I_moyen = 0.7 × 11.5 + 0.3 × 26.5 = 16mA
+     Autonomie ≈ 125h (5.2 jours)
+
+TRAITEMENT (Mode 2) avec OLED actif :
+  - ATmega328P          : 4mA
+  - PCF8574             : 0.5mA
+  - LED principale (92%): 20mA
+  - LEDs RGB            : 2mA
+  - 🆕 OLED actif       : 15mA
+  ─────────────────────────────────
+  TOTAL TRAITEMENT      : 41.5mA  → Autonomie = 2000mAh / 41.5mA ≈ 48h
+
+MODE BLANC avec OLED :
+  - Total               : 31.5mA  → Autonomie = 2000mAh / 31.5mA ≈ 63h
+
+
+══════════════════════════════════════════════════════════════════════════════
+  ✅ CHECKLIST VALIDATION SCHÉMA v8.0
+══════════════════════════════════════════════════════════════════════════════
+
+ALIMENTATION :
+  ✅ LDO 3.3V avec condensateurs entrée/sortie
+  ✅ Diviseur batterie (PC0) pour mesure
+  ✅ Découplages VCC sur tous les ICs (100nF)
+  ✅ AVCC découplé séparément
+
+MICROCONTRÔLEUR :
+  ✅ Cristal 8MHz avec condensateurs 22pF
+  ✅ RESET avec pull-up 10kΩ
+  ✅ Tous pins NC marqués avec flag
+  ✅ 🆕 PB0 connecté à SW3 (MENU)
+  ✅ ISP connecteur complet
+
+I2C :
+  ✅ Pull-ups 4.7kΩ sur SDA/SCL
+  ✅ Bus partagé entre U1, U2, 🆕 J3
+  ✅ Adresses différentes (0x20 vs 0x3C)
+
+INTERFACES :
+  ✅ 3 boutons (FREQ, MODE, 🆕 MENU)
+  ✅ LED principale PWM (Timer2)
+  ✅ LEDs RGB via PCF8574
+  ✅ 🆕 Connecteur OLED J3 (JST-4)
+
+SÉCURITÉ :
+  ✅ Pas de conflit adresse I2C
+  ✅ Courants LED limités (résistances)
+  ✅ Protection LDO (condensateurs)
+
+
+══════════════════════════════════════════════════════════════════════════════
+  📝 NOTES FINALES
+══════════════════════════════════════════════════════════════════════════════
+
+🎯 MIGRATION v7.0 → v8.0 :
+   - Ajouter 1 bouton (SW3)
+   - Ajouter 1 connecteur (J3 JST-4)
+   - Modifier code firmware (bibliothèque Adafruit_SSD1306)
+   - Routage facilité (I2C déjà disponible)
+
+⚠️ ATTENTION :
+   - Câble OLED : vérifier ordre pins (GND/VCC/SCL/SDA)
+   - Modulation réactivée : consommation CPU légèrement augmentée
+   - Timer augmente légèrement la complexité code
+
+🚀 AVANTAGES v8.0 :
+   - Interface utilisateur professionnelle
+   - Feedback visuel complet (batterie, mode, fréquence)
+   - Timer de soin intégré
+   - Configuration sauvegardée (EEPROM)
+
+═══════════════════════════════════════════════════════════════════════════════
+  FIN DU SCHÉMA v8.0
+═══════════════════════════════════════════════════════════════════════════════
