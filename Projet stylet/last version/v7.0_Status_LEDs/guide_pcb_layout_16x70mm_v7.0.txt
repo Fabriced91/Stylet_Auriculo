@@ -1,0 +1,580 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                      GUIDE PCB LAYOUT v7.0 - KiCad                            ║
+║            Stylet Auriculothérapie 16×70mm - ATmega328P-AU                    ║
+║                     Optimisé pour tube Ø18mm                                  ║
+║                  LED NSPW500CS - Circuit simplifié                            ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+═══════════════════════════════════════════════════════════════════════════════
+ 📐 CONTRAINTES MÉCANIQUES
+═══════════════════════════════════════════════════════════════════════════════
+
+DIMENSIONS PCB :
+  • Largeur : 16mm (max absolu, préférer 15mm pour jeu mécanique)
+  • Longueur : 62mm (RÉDUIT de 70mm v6 - simplification circuit LED)
+  • Épaisseur : 1.6mm standard (ou 1.0mm pour plus de flexibilité)
+  • Forme : Rectangle pur (pas d'encoches, simplifie fabrication)
+
+TUBE STYLET :
+  • Diamètre intérieur : 18mm
+  • Jeu mécanique PCB/tube : 1mm de chaque côté (16mm PCB dans Ø18mm)
+  • Matériau : Aluminium anodisé (dissipation thermique LED)
+
+MONTAGE :
+  • PCB inséré verticalement dans le tube
+  • LED NSPW500CS 5mm MONTÉE DIRECTEMENT SUR PCB (through-hole)
+  • Trous de fixation M2 aux 2 extrémités (écartement 57mm)
+  • Boutons latéraux traversant le tube (trous Ø4mm)
+
+NOUVEAUTÉS v7.0 :
+  ✓ PCB 8mm plus court (62mm vs 70mm)
+  ✓ Suppression zone driver LED (7 composants éliminés)
+  ✓ LED through-hole directe (pas de MCPCB externe)
+  ✓ Montage simplifié (moins de soudures)
+
+═══════════════════════════════════════════════════════════════════════════════
+ 🗺️ ORGANISATION DES ZONES (Vue de dessus)
+═══════════════════════════════════════════════════════════════════════════════
+
+┌──────────────────────────────────────────────────────────────────┐
+│                         Zone 1 : TÊTE LED                        │
+│  [0-12mm]                                                        │
+│  ┌────────────────────────────────────────────────────────┐     │
+│  │  • LED NSPW500CS 5mm (through-hole)                    │     │
+│  │  • Résistance 47Ω 0805 (série LED)                     │     │
+│  │  • Trou fixation M2 (x=7.5mm, y=5mm)                   │     │
+│  │  • Zone évidement pour dissipation thermique           │     │
+│  └────────────────────────────────────────────────────────┘     │
+├──────────────────────────────────────────────────────────────────┤
+│           ⚡ ZONE 2 SUPPRIMÉE (Driver LED complexe) ⚡           │
+│                  Gain d'espace : 8mm × 16mm                      │
+│                  7 composants éliminés                           │
+│                  Économie : -2.42€ / unité                       │
+├──────────────────────────────────────────────────────────────────┤
+│                  Zone 3 : MICROCONTRÔLEUR                        │
+│  [12-30mm]                                                       │
+│  ┌────────────────────────────────────────────────────────┐     │
+│  │  • ATmega328P-AU (TQFP-32) 7×7mm                       │     │
+│  │  • Diviseur résistif ADC (100k/33k)                    │     │
+│  │  • PCF8574 I2C expander (SOIC-16)                      │     │
+│  │  • Pull-ups I2C (2× 4.7kΩ)                             │     │
+│  │  • Condensateurs découplage (2× 100nF VCC+AVCC)        │     │
+│  │  • Ferrite + 100nF sur AVCC (filtrage analogique)     │     │
+│  │  • AREF : 100nF vers GND                              │     │
+│  └────────────────────────────────────────────────────────┘     │
+├──────────────────────────────────────────────────────────────────┤
+│                   Zone 4 : ALIMENTATION                          │
+│  [30-40mm]                                                       │
+│  ┌────────────────────────────────────────────────────────┐     │
+│  │  • LDO HT7333-A (SOT-89)                               │     │
+│  │  • Condensateurs 10µF entrée/sortie                    │     │
+│  │  • Connecteur batterie (JST-PH 2.0mm)                  │     │
+│  │  • Diode protection inversée                           │     │
+│  └────────────────────────────────────────────────────────┘     │
+├──────────────────────────────────────────────────────────────────┤
+│                    Zone 5 : CHARGE USB                           │
+│  [40-62mm]                                                       │
+│  ┌────────────────────────────────────────────────────────┐     │
+│  │  • TP4056 (SOT-23-6)                                   │     │
+│  │  • Connecteur USB-C (mid-mount)                        │     │
+│  │  • Rprog 2.2kΩ                                         │     │
+│  │  • LED charge (rouge) + LED standby (verte)            │     │
+│  │  • Résistances 5.1kΩ CC1/CC2 (USB-C)                   │     │
+│  │  • Trou fixation M2 (x=7.5mm, y=57mm)                  │     │
+│  └────────────────────────────────────────────────────────┘     │
+└──────────────────────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+ 🎨 PLACEMENT COMPOSANTS (Coordonnées en mm)
+═══════════════════════════════════════════════════════════════════════════════
+
+FORMAT : Composant [Référence] @ (X, Y) - Layer
+
+═══ ZONE 1 : TÊTE LED (0-12mm) ═══
+
+LED_MAIN [LED1] @ (7.5, 8)    - PTH      NSPW500CS 5mm (through-hole)
+                                           • Cathode (-) vers bas PCB (GND)
+                                           • Anode (+) vers haut (via R_LED)
+R_LED    [R1]  @ (7.5, 10.5)  - Top      47Ω 0805 (série LED, PWM→LED+)
+HOLE_1   [H1]  @ (7.5, 3)     - PTH      Trou M2 fixation
+TP_VLED  [TP1] @ (3, 10)      - Top      Test point LED+
+TP_GND1  [TP2] @ (12, 10)     - Top      Test point GND
+
+NOTES MONTAGE LED :
+  • LED montée légèrement surélevée (2mm au-dessus PCB) pour alignement optique
+  • Pattes LED pliées à 90° pour passer à travers PCB
+  • Cathode (patte courte) soudée sur pad GND (bottom layer)
+  • Anode (patte longue) soudée sur pad PWM (top layer via R_LED)
+  • Dissipateur thermique optionnel : Zone copper autour pads LED
+
+═══ ZONE 3 : MICROCONTRÔLEUR (12-30mm) ═══
+
+U_MCU    [U1]  @ (7.5, 20)    - Top      ATmega328P-AU TQFP-32
+U_I2C    [U2]  @ (7.5, 27)    - Top      PCF8574-SOIC16
+R_ADC1   [R2]  @ (2, 18)      - Top      100kΩ 0805 (diviseur haut)
+R_ADC2   [R3]  @ (2, 21)      - Top      33kΩ 0805 (diviseur bas)
+R_SDA    [R4]  @ (12, 25)     - Top      4.7kΩ 0805 (pull-up SDA)
+R_SCL    [R5]  @ (12, 27)     - Top      4.7kΩ 0805 (pull-up SCL)
+C_VCC    [C1]  @ (4, 20)      - Top      100nF 0805 (découplage VCC)
+C_AVCC   [C2]  @ (11, 20)     - Top      100nF 0805 (découplage AVCC)
+FB_AVCC  [FB1] @ (10, 18)     - Top      Ferrite bead 0805 (VCC→AVCC)
+C_AREF   [C3]  @ (13, 18)     - Top      100nF 0805 (AREF stabilisation)
+C_I2C    [C4]  @ (11, 27)     - Top      100nF 0805 (découplage PCF8574)
+C_RESET  [C5]  @ (2, 15)      - Top      100nF 0805 (anti-rebond reset)
+R_RESET  [R6]  @ (3, 15)      - Top      10kΩ 0805 (pull-up reset)
+TP_3V3   [TP3] @ (14, 20)     - Top      Test point 3.3V
+TP_SDA   [TP4] @ (14, 25)     - Top      Test point I2C SDA
+TP_SCL   [TP5] @ (14, 27)     - Top      Test point I2C SCL
+TP_AREF  [TP6] @ (14, 18)     - Top      Test point AREF
+
+═══ ZONE 4 : ALIMENTATION (30-40mm) ═══
+
+U_LDO    [U3]  @ (7.5, 35)    - Top      HT7333-A SOT-89
+C_LDO_IN [C6]  @ (4, 35)      - Top      10µF 0805 (entrée LDO)
+C_LDO_OUT[C7]  @ (11, 35)     - Top      10µF 0805 (sortie LDO)
+D_PROT   [D1]  @ (7.5, 33)    - Top      SS14 SOD-123 (protection inversée)
+J_BAT    [J1]  @ (7.5, 37)    - Top      JST-PH 2.0mm 2P (batterie)
+TP_BAT   [TP7] @ (2, 37)      - Top      Test point BAT+
+
+═══ ZONE 5 : CHARGE USB (40-62mm) ═══
+
+U_CHRG   [U4]  @ (7.5, 47)    - Top      TP4056 SOT23-6
+J_USB    [J2]  @ (7.5, 59)    - Top      USB-C mid-mount
+R_PROG   [R7]  @ (4, 47)      - Top      2.2kΩ 0805 (Rprog charge)
+R_CC1    [R8]  @ (3, 57)      - Top      5.1kΩ 0805 (USB-C CC1)
+R_CC2    [R9]  @ (12, 57)     - Top      5.1kΩ 0805 (USB-C CC2)
+R_LED1   [R10] @ (2, 45)      - Top      470Ω 0805 (LED charge)
+R_LED2   [R11] @ (13, 45)     - Top      470Ω 0805 (LED standby)
+D_CHG    [D2]  @ (2, 43)      - Top      LED Rouge 0805
+D_STBY   [D3]  @ (13, 43)     - Top      LED Verte 0805
+C_CHRG   [C8]  @ (11, 47)     - Top      10µF 0805
+HOLE_2   [H2]  @ (7.5, 57)    - PTH      Trou M2 fixation
+TP_USB   [TP8] @ (2, 59)      - Top      Test point USB VBUS
+
+═══ COMPOSANTS LATÉRAUX (Boutons) ═══
+
+Ces composants sont montés sur les BORDS du PCB pour accessibilité externe.
+
+SW_FREQ  [SW1] @ (0, 20)      - Top      Bouton tactile side-mount (PD2/D2)
+SW_MODE  [SW2] @ (0, 23)      - Top      Bouton tactile side-mount (PD4/D4)
+SW_ON    [SW3] @ (15, 35)     - Top      Interrupteur slide
+
+Position X=0 ou X=15 permet boutons sur tranche PCB (traversant le tube)
+
+═══════════════════════════════════════════════════════════════════════════════
+ 📊 RÈGLES DE CONCEPTION (Design Rules)
+═══════════════════════════════════════════════════════════════════════════════
+
+LARGEUR DES TRACES :
+  • Signal digital (I2C, boutons) : 0.2mm (8 mil)
+  • Alimentation 3.3V : 0.3mm (12 mil)
+  • PWM LED (20mA) : 0.25mm (10 mil) ← RÉDUIT car faible courant
+  • BAT+ (jusqu'à 250mA max) : 0.4mm (16 mil) ← RÉDUIT car faible conso
+  • LED principale (20mA) : 0.25mm (10 mil) ← RÉDUIT de 0.6mm v6
+  • GND stitching via : Ø0.3mm pad Ø0.6mm
+
+CLEARANCE (Espacement) :
+  • Trace-to-trace : 0.15mm (6 mil) minimum
+  • Trace-to-pad : 0.15mm
+  • Pad-to-pad (composants différents) : 0.2mm
+  • USB-C differential pair : 0.15mm gap, 90Ω impédance
+
+VIA :
+  • Diamètre perçage : 0.3mm (12 mil)
+  • Diamètre pad : 0.6mm (24 mil)
+  • Via stitching GND : Espacement 2-3mm sur plan GND
+
+PLANS DE CUIVRE :
+  • Layer 1 (Top) : Signaux + composants
+  • Layer 2 (Bottom) : Plan GND continu (> 80% surface)
+  • Clearance plan/trace : 0.2mm
+  • Thermal relief sur pads : 4 spokes, 0.3mm largeur
+
+SOUDURE :
+  • Masque soudure (solder mask) : Vert
+  • Sérigraphie (silkscreen) : Blanc
+  • Finition : ENIG (or chimique) ou HASL (étain-plomb)
+
+═══════════════════════════════════════════════════════════════════════════════
+ 🔌 ROUTAGE CRITIQUE (Signaux sensibles)
+═══════════════════════════════════════════════════════════════════════════════
+
+1️⃣ PWM LED (ATmega328P PD3 → R_LED → LED+)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Contraintes :
+     • Trace DIRECTE < 15mm (minimiser parasites PWM)
+     • Largeur 0.25mm suffisante (20mA max)
+     • Éloignée de l'ADC (PC0) > 5mm
+     • Résistance 47Ω AU PLUS PRÈS de la LED+ (série)
+   
+   Routage recommandé :
+     ATmega328P PD3 (pin 5) → [Trace 0.25mm] → [R_LED 47Ω 0805] → LED+ (anode)
+     LED- (cathode) → GND (via through-hole pad, court chemin vers plan GND)
+
+   SIMPLIFICATION v7.0 :
+     ✓ Plus d'op-amp ni MOSFET → Routage ultra-simple
+     ✓ Pas de traces haute puissance (350mA → 20mA)
+     ✓ Pas de filtrage RC complexe
+     ✓ 1 trace, 1 résistance, c'est tout !
+
+2️⃣ ADC Batterie (Diviseur → ATmega328P PC0/ADC0)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Contraintes :
+     • Filtrage capacitif 100nF au plus près de PC0
+     • Éloignée du PWM et switching (LDO, TP4056)
+     • Résistances précises 1% (si disponible)
+   
+   Routage :
+     BAT+ → [R2 100k] → [Nœud] → [R3 33k] → GND
+                          ↓
+                     [C 100nF] → GND
+                          ↓
+                    ATmega328P PC0 (pin 23)
+
+3️⃣ I2C Bus (SDA/SCL vers PCF8574)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Contraintes :
+     • Longueur < 50mm (vitesse standard 100kHz OK)
+     • Pull-ups 4.7kΩ sur SDA ET SCL (près du master ATmega)
+     • Condensateur 100nF sur VCC PCF8574
+   
+   Routage :
+     ATmega328P PC4 (SDA) ───[Trace]───┬─── PCF8574 SDA
+                                       │
+                                  [4.7kΩ] → 3.3V
+     
+     ATmega328P PC5 (SCL) ───[Trace]───┬─── PCF8574 SCL
+                                       │
+                                  [4.7kΩ] → 3.3V
+
+4️⃣ Alimentation VCC (LDO → ATmega328P)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Contraintes :
+     • Traces larges 0.3mm minimum (distribution 3.3V)
+     • Condensateurs découplage 100nF < 3mm des pins VCC
+     • Ferrite bead entre VCC et AVCC (filtrage ADC)
+   
+   Routage :
+     HT7333 OUT → [Trace 0.3mm] → ATmega VCC (pin 7)
+                               ↓
+                          [C1 100nF] → GND
+     
+     VCC → [FB1 Ferrite] → AVCC (pin 20)
+                        ↓
+                   [C2 100nF] → GND
+
+═══════════════════════════════════════════════════════════════════════════════
+ ⚡ GESTION THERMIQUE
+═══════════════════════════════════════════════════════════════════════════════
+
+COMPOSANTS CHAUDS (v7.0 - Dissipation minimale) :
+
+  1. LED NSPW500CS (5mm through-hole) : P = Vf × If = 3.3V × 0.02A = 0.066W
+     → Dissipation NÉGLIGEABLE (vs 1.05W LED 519A v6)
+     → Pas de dissipateur requis
+     → Pad thermique optionnel : Zone copper autour pads (5×5mm)
+     → Tube aluminium suffit amplement
+
+  2. Résistance 47Ω (0805) : P = I²R = 0.020² × 47 = 0.019W
+     → Totalement négligeable (SMD 0805 = 125mW max)
+     → Pas de précautions thermiques
+
+  3. LDO HT7333-A : P = (Vin - Vout) × Iout
+     → P = (4.2 - 3.3) × 0.015 = 0.0135W (négligeable, 15mA conso totale)
+     → Pas de dissipateur requis
+
+⚠️ COMPARAISON v6 → v7 :
+   v6 : Rsense 4.7Ω 1W → 0.58W dissipée (chaud !)
+   v7 : R_LED 47Ω 0805 → 0.019W dissipée (froid)
+   
+   v6 : MOSFET → 0.19W (chaud)
+   v7 : Pas de MOSFET → 0W
+   
+   v6 : LED 519A → 1.05W (très chaud, MCPCB requis)
+   v7 : LED NSPW500CS → 0.066W (tiède)
+   
+   GAIN : -1.73W dissipation totale (-96% !)
+
+DISSIPATION TUBE ALUMINIUM :
+  Le tube métallique Ø18mm sert de dissipateur naturel (largement surdimensionné).
+  • Contact thermique PCB/tube via pads GND exposés (optionnel)
+  • Pas de graisse thermique nécessaire
+  • LED peut toucher le tube en bout sans risque de surchauffe
+
+═══════════════════════════════════════════════════════════════════════════════
+ 🖼️ ZONES COPPER (Polygones de cuivre)
+═══════════════════════════════════════════════════════════════════════════════
+
+LAYER 1 (Top) :
+  • Zone GND partielle (éviter signaux PWM/ADC)
+  • Zone 3.3V autour ATmega et PCF8574 (polygon isolé)
+  • Zone thermique optionnelle sous LED (5×5mm, reliée GND)
+
+LAYER 2 (Bottom) :
+  • Plan GND COMPLET sur toute la surface
+  • Via stitching tous les 3mm sur le périmètre
+  • Keepout zones sous USB-C (impédance contrôlée)
+  • Pad thermique pour cathode LED (connexion GND, dissipation)
+
+ZONES INTERDITES (Keepout) :
+  • Sous connecteurs USB-C (interférences EMI)
+  • Autour trous de fixation M2 (clearance mécanique 3mm)
+  • Zone passage LED (rectangle 6×6mm en tête pour pattes pliées)
+
+═══════════════════════════════════════════════════════════════════════════════
+ 📝 ANNOTATIONS & SÉRIGRAPHIE (Silkscreen)
+═══════════════════════════════════════════════════════════════════════════════
+
+TEXTE OBLIGATOIRE :
+  • Titre PCB : "AURICULOTHERAPIE v7.0" (taille 1.0mm, top, zone 3)
+  • Polarités batterie : "+" et "-" près J1 (rouge/noir)
+  • Polarités LED : Triangle (+) sur pad anode LED principale
+  • Pin 1 IC : Cercle ou triangle sur SOIC/SOT/TQFP
+  • Test points : Labels "TP1 VLED", "TP3 3V3", etc.
+  • Marquage LED : "NSPW500CS 20mA" près de LED1
+
+IDENTIFIANTS COMPOSANTS :
+  • Tous les composants ont leur Ref visible (U1, R1, C1...)
+  • Taille texte : 0.8mm
+  • Éviter chevauchement avec pads/traces
+
+NOUVEAUTÉS v7.0 :
+  • Marquage "v7.0 - Simplified Circuit" sur bottom layer
+  • Indicateur "20mA LED" pour différencier de v6 (350mA)
+
+QR CODE (Optionnel mais pratique) :
+  • Position : Zone 4 (espace libre)
+  • Taille : 5×5mm
+  • Contenu : Lien vers documentation/schéma GitHub
+
+═══════════════════════════════════════════════════════════════════════════════
+ 🔧 ÉTAPES KICAD (Workflow complet)
+═══════════════════════════════════════════════════════════════════════════════
+
+ÉTAPE 1 : SCHÉMATIQUE (Eeschema)
+  ☐ 1.1 Créer nouveau projet "stylet_auriculo_v7.0"
+  ☐ 1.2 Importer librairies composants (créer footprints custom si besoin)
+  ☐ 1.3 Dessiner schéma selon "schema_electronique_ATmega328P_v7.0.txt"
+  ☐ 1.4 SUPPRIMER composants v6 : MCP6001, 2N7002, Rsense, R_GATE, filtres RC
+  ☐ 1.5 AJOUTER LED NSPW500CS (5mm through-hole) + R_LED 47Ω
+  ☐ 1.6 Annoter composants (Tools → Annotate Schematic)
+  ☐ 1.7 Assigner footprints :
+        • LED1 : LED_THT:LED_D5.0mm (standard 5mm)
+        • R1 : Resistor_SMD:R_0805_2012Metric
+  ☐ 1.8 Générer netlist (Tools → Generate Netlist)
+  ☐ 1.9 ERC check (Inspect → Electrical Rules Checker)
+  ☐ 1.10 Exporter PDF schéma pour documentation
+
+ÉTAPE 2 : PCB LAYOUT (Pcbnew)
+  ☐ 2.1 Importer netlist (Tools → Update PCB from Schematic)
+  ☐ 2.2 Définir edge cuts (rectangle 16×62mm) ← RÉDUIT de 70mm
+  ☐ 2.3 Placer composants selon plan ci-dessus
+  ☐ 2.4 Ajouter trous fixation M2 (écartement 57mm)
+  ☐ 2.5 Créer plan GND layer bottom (Add Filled Zone)
+  ☐ 2.6 Router PWM LED (PD3 → R_LED → LED+) manuellement
+  ☐ 2.7 Router signaux critiques (ADC, I2C) manuellement
+  ☐ 2.8 Router signaux standard (autorouter si désiré)
+  ☐ 2.9 Ajouter via stitching GND
+  ☐ 2.10 Ajouter zone copper optionnelle sous LED (dissipation)
+  ☐ 2.11 Annotations silkscreen (textes, polarités, v7.0 marking)
+  ☐ 2.12 DRC check (Inspect → Design Rules Checker)
+  ☐ 2.13 3D View (View → 3D Viewer) pour vérification mécanique
+  ☐ 2.14 Vérifier hauteur LED (surélevée 2mm pour alignement optique)
+
+ÉTAPE 3 : FABRICATION
+  ☐ 3.1 Générer Gerbers (File → Plot → Gerber format)
+      → Layers : F.Cu, B.Cu, F.SilkS, B.SilkS, F.Mask, B.Mask, Edge.Cuts
+  ☐ 3.2 Générer Drill file (Generate Drill Files → PTH & NPTH)
+  ☐ 3.3 Zipper tous les Gerbers
+  ☐ 3.4 Exporter BOM (File → Fabrication Outputs → BOM) selon BOM_complete_v7.0.txt
+  ☐ 3.5 Exporter Position file pour assemblage (CPL format)
+  ☐ 3.6 Uploader sur JLCPCB/PCBWay
+  ☐ 3.7 Vérifier preview Gerber en ligne
+  ☐ 3.8 Commander (options : 2L, 1.6mm, ENIG, vert)
+
+ÉCONOMIES v7.0 :
+  • PCB plus petit : 16×62mm vs 16×70mm (-11% surface)
+  • Moins de composants : 24 vs 31 (-23%)
+  • BOM : 20.48€ vs 22.90€ (-10.6%)
+
+═══════════════════════════════════════════════════════════════════════════════
+ 🎨 VISUALISATION 3D DU PCB
+═══════════════════════════════════════════════════════════════════════════════
+
+Vue de dessus (Top) - v7.0 SIMPLIFIÉ :
+
+     0mm                                                    62mm
+      ┌───────────────────────────────────────────────────┐
+      │ [H1]                                               │ ← Trou fixation
+      │                                                    │
+   ┌──┤  [LED1]            Zone 1 : LED Through-hole      │
+   │  │  NSPW500CS                                         │
+ 16mm │   5mm                                              │
+   │  │  [R1 47Ω]                                          │
+   └──┤                                                    │
+      │  ⚡ ZONE 2 : SUPPRIMÉE (7 composants éliminés) ⚡   │
+      │                                                    │
+      │  [ATmega328P] [PCF8574]  Zone 3 : Microcontrôleur │
+ [SW1] │  [R2][R3]                                    [SW3]│
+ [SW2] │  [C1][C2]                                    slide│
+      │                                                    │
+      │  [HT7333]  [C6][C7]      Zone 4 : Alimentation    │
+      │   [J1]                                             │
+      │   JST                                              │
+      │  [TP4056]                Zone 5 : Charge USB      │
+      │                                                    │
+      │              [USB-C]                               │
+      │                                        [H2] ← Trou │
+      └───────────────────────────────────────────────────┘
+
+Vue de profil (insertion dans tube Ø18mm) :
+
+        ═══════════════════════════════════════════════
+        ║               Tube Aluminium Ø18mm          ║
+        ║  ┌────────────────────────────────┐         ║
+        ║  │    PCB 16mm × 62mm (-8mm v6)   │         ║
+  Boutons→ ●│  [Composants CMS top layer]   │●        ║
+        ║  │    [LED 5mm surélevée 2mm]     │         ║
+        ║  └────────────────────────────────┘         ║
+        ║         1mm jeu       1mm jeu               ║
+        ═══════════════════════════════════════════════
+
+Vue LED (détail tête) :
+
+                     Tube Ø18mm
+                    ┌──────────┐
+                    │          │
+                    │  ╔════╗  │ ← LED NSPW500CS (bout)
+                    │  ║    ║  │
+                    │  ║ 5mm║  │
+                    │  ║    ║  │
+                    │  ╚════╝  │
+                    │    ||    │ ← Pattes pliées 90°
+      ──────────────┴────┬┬────┴─────────────
+      ═══════════════════││══════════════════ ← PCB
+                         └┴─ Soudure pads
+                       Anode  Cathode
+                       (+PWM) (GND)
+
+═══════════════════════════════════════════════════════════════════════════════
+ ✅ CHECKLIST FINALE AVANT COMMANDE
+═══════════════════════════════════════════════════════════════════════════════
+
+VÉRIFICATIONS MÉCANIQUES :
+  ☐ Dimensions 16×62mm respectées (-8mm vs v6)
+  ☐ Trous fixation M2 à 57mm écartement (vs 65mm v6)
+  ☐ Clearance composants/bords > 1mm
+  ☐ Hauteur composants < 3mm (pour insertion tube)
+  ☐ LED 5mm positionnée pour saillie 2mm au-dessus PCB
+  ☐ Pattes LED pliées à 90° (espace prévu dans layout)
+  ☐ Boutons positionnés sur edges (accessibles latéralement)
+
+VÉRIFICATIONS ÉLECTRIQUES :
+  ☐ ERC 0 erreur (schématique)
+  ☐ DRC 0 erreur (PCB)
+  ☐ Tous les nets connectés (pas de airwires)
+  ☐ Plans GND continus (pas d'îlots isolés)
+  ☐ Condensateurs découplage < 5mm des VCC pins
+  ☐ PWM LED correctement routé (PD3 → R1 47Ω → LED+)
+  ☐ LED cathode reliée à GND (via through-hole)
+
+VÉRIFICATIONS SIMPLIFICATION v7.0 :
+  ☐ AUCUN composant driver LED v6 présent (MCP6001, 2N7002, Rsense)
+  ☐ R_LED = 47Ω 0805 (pas 4.7Ω 1W)
+  ☐ Traces PWM fine (0.25mm, pas 0.6mm)
+  ☐ Pas de filtrage RC sur PWM
+  ☐ LED NSPW500CS 5mm (pas 519A 3535 SMD)
+
+VÉRIFICATIONS FABRICATION :
+  ☐ Gerbers lisibles (vérifiés sur viewer en ligne)
+  ☐ Drill file inclus (PTH + NPTH si applicable)
+  ☐ BOM avec références exactes (BOM_complete_v7.0.txt)
+  ☐ Silkscreen texte > 0.8mm (lisible)
+  ☐ Marquage v7.0 visible (différenciation de v6)
+  ☐ Clearance solder mask respectée
+
+VÉRIFICATIONS THERMIQUES :
+  ☐ Aucune précaution thermique spéciale requise (dissipation négligeable)
+  ☐ Zone copper optionnelle sous LED (si désiré, non critique)
+
+═══════════════════════════════════════════════════════════════════════════════
+ 📚 RESSOURCES COMPLÉMENTAIRES
+═══════════════════════════════════════════════════════════════════════════════
+
+FOOTPRINTS CUSTOMS (si non disponibles dans librairie KiCad) :
+  • NSPW500CS : LED_THT:LED_D5.0mm (standard KiCad, écartement 2.54mm)
+  • USB-C mid-mount 16 pins : Chercher "USB_C_Receptacle_HRO_TYPE-C-31-M-12"
+  • TP4056 SOT23-6 : Créer depuis SOT-23 standard (modifier pin layout)
+  • JST-PH 2.0mm 2P : Disponible dans lib "Connector_JST"
+  • Boutons side-mount : Créer custom (4×4mm, pads latéraux)
+
+DATASHEET LED NSPW500CS :
+  • Fabricant : Nichia
+  • Package : 5mm through-hole (écartement standard 2.54mm)
+  • Vf : 3.0-3.6V @ 20mA
+  • Angle faisceau : 15°
+  • CRI : >90
+  • Luminous flux : 8lm @ 20mA
+  • Température couleur : 5000K (blanc neutre)
+
+CALCULATEURS EN LIGNE :
+  • Largeur trace (courant) : https://www.7pcb.com/trace-width-calculator
+  • Impédance différentielle : https://www.eeweb.com/tools/microstrip-impedance
+  • Résistance LED série : R = (Vcc - Vf) / If = (3.3 - 3.0) / 0.020 = 15Ω min
+    → v7.0 utilise 47Ω pour limitation sécuritaire avec PWM
+
+FABRICANTS RECOMMANDÉS :
+  • PCB : JLCPCB (2$ les 5 PCB), PCBWay, OSHPARK
+  • Assemblage : JLCPCB SMT (si composants en stock)
+  • Stencil : JLCPCB (5$ acier inox laser-cut)
+
+COMPARAISON COÛTS FABRICATION v6 → v7 :
+  • PCB seul : -0.50$ (surface réduite)
+  • Assemblage SMT : -2€/unité (7 composants en moins)
+  • Temps soudure : -40% (moins de composants)
+  • Taux de défaut : -50% (circuit plus simple)
+
+═══════════════════════════════════════════════════════════════════════════════
+ 🎯 AVANTAGES v7.0 vs v6
+═══════════════════════════════════════════════════════════════════════════════
+
+SIMPLICITÉ :
+  ✓ Circuit 7× plus simple (1 résistance vs driver 7 composants)
+  ✓ Routage évident (pas de traces critiques haute puissance)
+  ✓ Pas de réglage op-amp requis
+  ✓ Montage LED through-hole (plus facile que SMD)
+
+COÛT :
+  ✓ BOM : 20.48€ vs 22.90€ (-10.6%)
+  ✓ PCB : Surface réduite (-11%)
+  ✓ Assemblage : Temps réduit (-40%)
+
+FIABILITÉ :
+  ✓ Moins de composants = moins de points de défaillance
+  ✓ LED through-hole = soudure robuste
+  ✓ Pas de MOSFET en mode linéaire (chaleur)
+  ✓ Pas d'op-amp à dériver (stabilité)
+
+PERFORMANCE :
+  ✓ Autonomie détection : 69h vs 26h (+165%)
+  ✓ Autonomie traitement : 32h vs 3.5h (+814%)
+  ✓ Consommation : 13-28mA vs 34-254mA (-75% à -89%)
+
+THERMIQUE :
+  ✓ Dissipation totale : 0.085W vs 1.82W (-95%)
+  ✓ Pas de composants chauds
+  ✓ Pas de dissipateur requis
+
+TAILLE :
+  ✓ PCB : 62mm vs 70mm (-11%)
+  ✓ Poids : -15% (composants éliminés)
+
+═══════════════════════════════════════════════════════════════════════════════
+ 📝 FIN DU GUIDE PCB LAYOUT v7.0
+═══════════════════════════════════════════════════════════════════════════════
+
+Pour toute question ou amélioration, consulter :
+  • schema_electronique_ATmega328P_v7.0.txt (schéma complet)
+  • BOM_complete_v7.0.txt (composants et prix)
+  • MIGRATION_v6_to_v7.txt (explications changements)
+  • stylet_auriculo_ATmega328P_v7.0.ino (code Arduino)

@@ -1,0 +1,898 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║          GUIDE TEST BREADBOARD - Arduino Uno/ATmega328P                       ║
+║          Validation fonctionnelle avant fabrication PCB final                 ║
+║                  Stylet Auriculothérapie v7.0                                 ║
+║                  LED NSPW500CS - Circuit simplifié                            ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+═══════════════════════════════════════════════════════════════════════════════
+ 🎯 OBJECTIFS DU TEST BREADBOARD
+═══════════════════════════════════════════════════════════════════════════════
+
+Ce guide vous permet de VALIDER le fonctionnement complet du projet AVANT
+la fabrication du PCB final, en utilisant un Arduino Uno + breadboard.
+
+Vous pourrez tester :
+  ✓ Modulation 1kHz des fréquences de Nogier
+  ✓ Circuit LED SIMPLIFIÉ avec résistance 47Ω (nouveau v7.0)
+  ✓ 3 modes (Détection / Traitement / Blanc)
+  ✓ Sélection fréquence via boutons
+  ✓ Indicateurs LED RGB
+  ✓ Mesure batterie
+  ✓ Charge USB (module TP4056)
+
+Une fois validé sur breadboard, vous pourrez fabriquer le PCB en toute confiance.
+
+NOUVEAUTÉS v7.0 :
+  ⚡ DRIVER LED SUPPRIMÉ (op-amp + MOSFET éliminés)
+  ⚡ CIRCUIT ULTRA-SIMPLE : 1 résistance 47Ω + LED directe
+  ⚡ LED NSPW500CS 20mA (vs 519A 350mA)
+  ⚡ Montage 5× plus rapide
+  ⚡ Consommation divisée par 10 !
+
+═══════════════════════════════════════════════════════════════════════════════
+ 📦 MATÉRIEL REQUIS
+═══════════════════════════════════════════════════════════════════════════════
+
+ÉLECTRONIQUE :
+  ☐ 1× Arduino Uno (ou Nano, Mega)
+  ☐ 1× Breadboard 400 points (vs 830 v6, circuit plus simple)
+  ☐ 1× Alimentation 9V (pile ou adaptateur secteur)
+  ☐ 15× Fils jumper mâle-mâle (vs 20 v6)
+  ☐ 1× Multimètre (mesure tension/courant)
+  ☐ 1× Oscilloscope (optionnel, pour vérifier PWM)
+
+COMPOSANTS ACTIFS :
+  ☐ 1× LED Nichia NSPW500CS (5mm through-hole, CRI>90, 20mA)
+  ☐ 3× LED standard 5mm (Rouge, Verte, Bleue pour indicateurs)
+  ☐ 1× Module TP4056 (charge LiPo, breakout board)
+  ☐ 1× PCF8574 (optionnel, I2C expander DIP-16)
+
+  ⚠️ COMPOSANTS SUPPRIMÉS v7.0 (plus nécessaires) :
+    ✗ MOSFET 2N7000/2N2222 (driver supprimé)
+    ✗ Op-amp LM358 (driver supprimé)
+    ✗ Résistance Rsense 4.7Ω 1W (driver supprimé)
+
+COMPOSANTS PASSIFS :
+  Résistances (1/4W traversantes) :
+    ☐ 1× 47Ω (NOUVELLE v7.0 : série LED principale, PWM direct)
+    ☐ 3× 470Ω (pour LEDs indicateurs RGB)
+    ☐ 1× 100kΩ (diviseur ADC haut)
+    ☐ 1× 33kΩ (diviseur ADC bas)
+    ☐ 2× 4.7kΩ (pull-ups I2C, si PCF8574)
+  
+  Condensateurs :
+    ☐ 3× 100nF céramique (découplage)
+    ☐ 1× 10µF électrolytique (optionnel, anti-rebond reset)
+
+  ⚠️ COMPOSANTS SUPPRIMÉS v7.0 (plus nécessaires) :
+    ✗ Résistance 1kΩ (gate MOSFET)
+    ✗ Résistance 100Ω (série gate op-amp)
+    ✗ Résistance 10kΩ (filtre RC)
+    ✗ Condensateur 1µF (filtre RC)
+
+ALIMENTATION & BATTERIE :
+  ☐ 1× Batterie LiPo 3.7V (ou simuler avec 3× piles AA = 4.5V)
+  ☐ 1× Câble USB-C ou micro-USB (pour charge TP4056)
+
+BOUTONS :
+  ☐ 2× Boutons poussoirs momentanés (FREQ, MODE)
+
+═══════════════════════════════════════════════════════════════════════════════
+ 🔌 SCHÉMA BREADBOARD COMPLET v7.0 (SIMPLIFIÉ !)
+═══════════════════════════════════════════════════════════════════════════════
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│                        ARDUINO UNO + BREADBOARD                            │
+│                       (ATmega328P-AU compatible)                           │
+│                          ⚡ VERSION 7.0 SIMPLIFIÉE ⚡                        │
+│                                                                            │
+│   ARDUINO UNO                           BREADBOARD                         │
+│   ┌────────────┐                                                           │
+│   │            │                                                           │
+│   │  5V  ●─────┼───┬─────────────────── [Rail + Rouge]                    │
+│   │            │   │                                                       │
+│   │  GND ●─────┼───┴─────────────────── [Rail - Bleu]                     │
+│   │            │                                                           │
+│   │  D3  ●─────┼───[47Ω]───┬─── LED NSPW500CS Anode (+)                   │
+│   │  (PWM)     │           │                  ↓ (patte longue)            │
+│   │            │      [LED NSPW500CS]                                      │
+│   │            │           │                  ↓ (patte courte)            │
+│   │            │           └─── LED Cathode (-) → GND                      │
+│   │            │                                                           │
+│   │  D11 ●─────┼───[470Ω]───┤ LED Rouge (indicateur)                      │
+│   │            │            │                                              │
+│   │  D10 ●─────┼───[470Ω]───┤ LED Verte (indicateur)                      │
+│   │            │            │                                              │
+│   │  D9  ●─────┼───[470Ω]───┤ LED Bleue (indicateur)                      │
+│   │            │            │                                              │
+│   │            │            └─── Toutes cathodes → GND                     │
+│   │            │                                                           │
+│   │  D2  ●─────┼────[BTN_FREQ]───┐                                        │
+│   │            │                 │                                         │
+│   │  D4  ●─────┼────[BTN_MODE]───┼─── GND                                 │
+│   │            │                 │                                         │
+│   │  A0  ●─────┼─────[100kΩ]─────┴───┬─── Mesure batterie                 │
+│   │  (ADC)     │                     │                                     │
+│   │            │                 [33kΩ]                                    │
+│   │            │                     │                                     │
+│   └────────────┘                    GND                                    │
+│                                                                            │
+│   ╔═══════════════════════════════════════════════════════════════╗       │
+│   ║  ⚡ COMPARAISON v6 → v7 :                                     ║       │
+│   ║  v6 : D3 → [RC filter] → [Op-amp] → [MOSFET] → [Rsense] → LED ║       │
+│   ║  v7 : D3 → [47Ω] → LED → GND                                  ║       │
+│   ║                                                               ║       │
+│   ║  SIMPLICITÉ : 11 composants → 2 composants (-82%) !           ║       │
+│   ╚═══════════════════════════════════════════════════════════════╝       │
+│                                                                            │
+└────────────────────────────────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+ 🔧 MONTAGE DÉTAILLÉ ÉTAPE PAR ÉTAPE
+═══════════════════════════════════════════════════════════════════════════════
+
+═══ ÉTAPE 1 : ALIMENTATION ═══
+
+1.1 - Connecter Arduino Uno à l'ordinateur (USB)
+1.2 - Connecter rail + breadboard à 5V Arduino
+1.3 - Connecter rail - breadboard à GND Arduino
+1.4 - Vérifier continuité avec multimètre : 5V entre rails
+
+═══ ÉTAPE 2 : LED PRINCIPALE (Version ultra-simple v7.0) ═══
+
+MONTAGE DIRECT PWM → RÉSISTANCE → LED :
+
+```
+Arduino D3 (PWM) ──[47Ω]── Anode LED NSPW500CS (+, patte longue)
+                              │
+                          Cathode LED (-, patte courte)
+                              │
+                             GND
+```
+
+⚡ NOUVEAUTÉ v7.0 : MONTAGE ULTRA-SIMPLIFIÉ !
+
+Fini les drivers complexes ! La LED NSPW500CS consomme seulement 20mA,
+donc le microcontrôleur peut la piloter DIRECTEMENT via une résistance
+de limitation de courant.
+
+Composants :
+  • LED NSPW500CS (5mm through-hole) :
+    - Anode (+, patte longue) → Résistance 47Ω → Arduino D3
+    - Cathode (-, patte courte) → GND
+
+  • Résistance 47Ω (1/4W traversante) :
+    Limite courant LED à ~20mA @ 3.3V (PWM 100%)
+    Calcul : I = (Vcc - Vf) / R = (5V - 3.3V) / 47Ω ≈ 36mA max
+             Avec PWM, courant moyen = 36mA × duty_cycle
+             Pour 20mA → duty cycle = 20/36 = 56%
+
+2.1 - Insérer LED NSPW500CS sur breadboard (espacer pattes 0.3" / 7.62mm)
+2.2 - Identifier polarité : patte longue = anode (+), patte courte = cathode (-)
+2.3 - Connecter cathode (patte courte) à rail GND
+2.4 - Connecter anode (patte longue) à résistance 47Ω
+2.5 - Connecter résistance 47Ω à Arduino D3
+
+VÉRIFICATION :
+  • Avec multimètre en mode continuité :
+    - Cathode LED → GND : court-circuit (OK)
+    - Anode → D3 (via 47Ω) : résistance mesurée ~47Ω (OK)
+  
+  • Test rapide :
+    - Upload code test : digitalWrite(3, HIGH);
+    - LED doit s'allumer à intensité modérée (~36mA)
+    - Si trop brillante, augmenter résistance (82Ω pour 15mA)
+
+⚠️ DIFFÉRENCE v6 → v7 :
+
+  v6 (350mA LED) : Nécessitait driver complexe
+    ┌─────────────────────────────────────────────────┐
+    │ PWM → Filtre RC → Op-amp → MOSFET → Rsense 4.7Ω │
+    │       (10k+1µF)  (MCP6001) (2N7002)             │
+    │                                                  │
+    │ • 7 composants                                   │
+    │ • Réglage op-amp délicat                         │
+    │ • MOSFET en mode linéaire (chaud)                │
+    │ • Consommation 254mA en traitement               │
+    └─────────────────────────────────────────────────┘
+
+  v7 (20mA LED) : Circuit ultra-simple
+    ┌─────────────────────────────────────────────────┐
+    │ PWM → Résistance 47Ω → LED → GND                │
+    │                                                  │
+    │ • 1 composant (résistance)                       │
+    │ • Aucun réglage                                  │
+    │ • Pas de composant chaud                         │
+    │ • Consommation 28mA en traitement                │
+    └─────────────────────────────────────────────────┘
+
+  GAIN : -82% composants, -89% consommation, montage 10× plus rapide !
+
+═══ ÉTAPE 3 : LED INDICATEURS RGB ═══
+
+Monter 3 LEDs standard 5mm (Rouge, Verte, Bleue) :
+
+LED ROUGE (indicateur fréquence R) :
+  Arduino D11 ──[470Ω]──[LED Rouge +]──[LED Rouge -]── GND
+
+LED VERTE (indicateur fréquence G) :
+  Arduino D10 ──[470Ω]──[LED Verte +]──[LED Verte -]── GND
+
+LED BLEUE (indicateur fréquence B) :
+  Arduino D9 ──[470Ω]──[LED Bleue +]──[LED Bleue -]── GND
+
+3.1 - Insérer LED Rouge sur breadboard (anode + vers haut)
+3.2 - Connecter anode à résistance 470Ω
+3.3 - Connecter résistance à Arduino D11
+3.4 - Connecter cathode LED à rail GND
+3.5 - Répéter pour LED Verte (D10) et LED Bleue (D9)
+
+VÉRIFICATION :
+  • Upload code test blink sur D11, D10, D9
+  • Chaque LED doit s'allumer indépendamment
+
+═══ ÉTAPE 4 : BOUTONS ═══
+
+BOUTON FRÉQUENCE (sélection A→G) :
+  Arduino D2 ────┬──── [Bouton] ──── GND
+                 │
+           (Pull-up interne activé dans code)
+
+BOUTON MODE (Détection/Traitement/Blanc) :
+  Arduino D4 ────┬──── [Bouton] ──── GND
+                 │
+           (Pull-up interne activé dans code)
+
+4.1 - Insérer bouton poussoir sur breadboard
+4.2 - Connecter une patte à Arduino D2
+4.3 - Connecter autre patte à rail GND
+4.4 - Répéter pour bouton MODE (D4 ↔ GND)
+
+VÉRIFICATION :
+  • Serial.println(digitalRead(D2)) doit afficher HIGH au repos, LOW si appuyé
+
+═══ ÉTAPE 5 : MESURE BATTERIE (ADC) ═══
+
+Diviseur résistif pour mesurer tension batterie :
+
+  VBat (ou 5V test) ──[100kΩ]──┬── Arduino A0 (ADC)
+                                │
+                            [33kΩ]
+                                │
+                               GND
+
+5.1 - Connecter résistance 100kΩ entre 5V et une ligne breadboard
+5.2 - Connecter résistance 33kΩ entre cette ligne et GND
+5.3 - Connecter nœud (jonction 100k/33k) à Arduino A0
+5.4 - Ajouter condensateur 100nF en parallèle sur 33kΩ (filtrage, optionnel)
+
+VÉRIFICATION :
+  • Mesurer tension au nœud : devrait être ~1.24V (5V × 33/133)
+  • Serial.println(analogRead(A0)) doit afficher ~255 (1.24V sur échelle 5V)
+
+NOUVEAUTÉ v7.0 : Code adapté pour Vref 3.3V
+  • Sur PCB final, ATmega utilise AREF = 3.3V pour précision
+  • Sur Arduino Uno test, utiliser formule v6 (Vref 5V)
+
+═══ ÉTAPE 6 : MODULE TP4056 (Charge batterie) ═══
+
+Utiliser module breakout TP4056 tout-fait (disponible sur AliExpress/Amazon).
+
+Connexions :
+  • IN+ → USB 5V (via câble micro-USB)
+  • IN- → GND
+  • BAT+ → Batterie LiPo + (ou simuler avec 3.7V)
+  • BAT- → Batterie LiPo - (GND)
+
+6.1 - Brancher module TP4056 sur breadboard
+6.2 - Connecter BAT+ à rail + (via interrupteur si désiré)
+6.3 - Connecter BAT- à rail GND
+6.4 - Brancher câble USB au module TP4056
+
+VÉRIFICATION :
+  • LED rouge du module doit s'allumer (charge en cours)
+  • Mesurer tension BAT+ : devrait monter vers 4.2V en charge
+
+═══════════════════════════════════════════════════════════════════════════════
+ 💻 CODE ARDUINO UNO v7.0 (Version Test Breadboard)
+═══════════════════════════════════════════════════════════════════════════════
+
+Voici le code adapté pour Arduino Uno avec LED NSPW500CS 20mA :
+
+```cpp
+/*
+ * STYLET AURICULOTHÉRAPIE v7.0 - Test Breadboard Arduino Uno
+ * 
+ * LED NSPW500CS 20mA - Circuit simplifié (résistance 47Ω)
+ * Pins mapping :
+ * - D3  : PWM LED principale (Timer2, OC2B) - NOUVEAU v7.0
+ * - D11, D10, D9 : LED indicateurs R, G, B
+ * - D2 : Bouton FREQ
+ * - D4 : Bouton MODE (changé de D3 v6)
+ * - A0 : ADC mesure batterie
+ */
+
+// ═══ CONFIGURATION PINS ═══
+#define LED_PWM_PIN     3     // PWM LED principale (NOUVEAU v7.0 : D3 au lieu de D11)
+#define LED_R_PIN       11    // LED Rouge (indicateur)
+#define LED_G_PIN       10    // LED Verte
+#define LED_B_PIN       9     // LED Bleue
+#define BTN_FREQ_PIN    2     // Bouton FREQ
+#define BTN_MODE_PIN    4     // Bouton MODE (changé de D3)
+#define ADC_BATTERY_PIN A0    // Mesure batterie
+
+// ═══ FRÉQUENCES DE NOGIER ═══
+const float frequencies[] = {2.28, 4.56, 9.12, 18.25, 36.50, 73.0, 146.0};
+const char freqNames[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G'};
+const uint8_t numFreqs = 7;
+
+// ═══ MODES ═══
+enum Mode {MODE_DETECTION, MODE_TRAITEMENT, MODE_BLANC};
+const char* modeNames[] = {"DETECTION", "TRAITEMENT", "BLANC"};
+uint8_t numModes = 3;
+
+// ═══ DUTY CYCLES v7.0 (adaptés pour LED 20mA) ═══
+#define DUTY_DETECTION   64   // 25% → ~5mA
+#define DUTY_TRAITEMENT  235  // 92% → ~20mA
+#define DUTY_BLANC       128  // 50% → ~10mA
+
+// ═══ INDICATEURS LED RGB ═══
+const bool freqIndicators[7][3] = {
+  {1, 0, 0},  // A : Rouge
+  {0, 1, 0},  // B : Vert
+  {1, 1, 0},  // C : Jaune (R+G)
+  {0, 0, 1},  // D : Bleu
+  {1, 0, 1},  // E : Magenta (R+B)
+  {0, 1, 1},  // F : Cyan (G+B)
+  {1, 1, 1}   // G : Blanc (R+G+B)
+};
+
+// ═══ VARIABLES GLOBALES ═══
+uint8_t currentFreq = 0;
+Mode currentMode = MODE_DETECTION;
+
+void setup() {
+  
+  // Configuration pins
+  pinMode(LED_PWM_PIN, OUTPUT);
+  pinMode(LED_R_PIN, OUTPUT);
+  pinMode(LED_G_PIN, OUTPUT);
+  pinMode(LED_B_PIN, OUTPUT);
+  pinMode(BTN_FREQ_PIN, INPUT_PULLUP);
+  pinMode(BTN_MODE_PIN, INPUT_PULLUP);
+  
+  // Configuration Timer2 pour PWM sur D3 (OC2B)
+  setupTimer2PWM();
+  
+  // Serial pour debug
+  Serial.begin(115200);
+  Serial.println(F("\n╔════════════════════════════════════╗"));
+  Serial.println(F("║  STYLET AURICULOTHÉRAPIE v7.0      ║"));
+  Serial.println(F("║  Test Breadboard - Arduino Uno     ║"));
+  Serial.println(F("║  LED NSPW500CS 20mA - Simplifié    ║"));
+  Serial.println(F("╚════════════════════════════════════╝\n"));
+  
+  // Initialisation indicateurs
+  updateFreqIndicators();
+  printStatus();
+  
+  // Test LED principale (3 flashs)
+  for (uint8_t i = 0; i < 3; i++) {
+    OCR2B = 255;  // NOUVEAU : OCR2B au lieu de OCR2A
+    delay(100);
+    OCR2B = 0;
+    delay(100);
+  }
+}
+
+void setupTimer2PWM() {
+  // Timer2 Fast PWM sur OC2B (pin D3), fréquence ~31kHz
+  // NOUVEAU v7.0 : Utilisation de OC2B au lieu de OC2A
+  TCCR2A = _BV(COM2B1) | _BV(WGM21) | _BV(WGM20);  // Fast PWM, clear OC2B on match
+  TCCR2B = _BV(CS20);  // Prescaler 1 → f_PWM = 16MHz / 256 = 62.5kHz
+  OCR2B = 0;  // Duty cycle initial 0%
+}
+
+void loop() {
+  
+  static uint32_t lastUpdate = 0;
+  
+  // Gestion boutons
+  handleButtons();
+  
+  // Génération modulation
+  if (currentMode != MODE_BLANC) {
+    generateModulation();
+  } else {
+    OCR2B = DUTY_BLANC;  // 50% duty cycle constant
+  }
+  
+  // Mesure batterie toutes les 2 secondes
+  if (millis() - lastUpdate > 2000) {
+    lastUpdate = millis();
+    uint16_t voltage = readBatteryVoltage();
+    Serial.print(F("Batterie : "));
+    Serial.print(voltage);
+    Serial.print(F(" mV | Mode : "));
+    Serial.print(modeNames[currentMode]);
+    Serial.print(F(" | Freq : "));
+    Serial.print(freqNames[currentFreq]);
+    Serial.print(F(" ("));
+    Serial.print(frequencies[currentFreq], 2);
+    Serial.println(F(" Hz)"));
+  }
+}
+
+void generateModulation() {
+  
+  uint32_t currentMicros = micros();
+  
+  // Calcul phase Nogier
+  float nogierFreq = frequencies[currentFreq];
+  float nogierPeriod = 1000000.0 / nogierFreq;
+  float nogierPhase = (float)(currentMicros % (uint32_t)nogierPeriod) / nogierPeriod * 2.0 * PI;
+  
+  // Enveloppe sinusoïdale
+  float envelope = 0.5 + 0.5 * sin(nogierPhase);
+  
+  // Modulation 70% profondeur, minimum 20%
+  float modulatedIntensity = 0.20 + 0.70 * envelope;
+  
+  // Calcul duty cycle selon mode
+  uint8_t baseDuty = (currentMode == MODE_DETECTION) ? DUTY_DETECTION : DUTY_TRAITEMENT;
+  uint8_t finalDuty = (uint8_t)(baseDuty * modulatedIntensity);
+  
+  // Écriture PWM
+  OCR2B = finalDuty;
+}
+
+void handleButtons() {
+  
+  static bool lastBtnFreq = HIGH;
+  static bool lastBtnMode = HIGH;
+  static uint32_t lastDebounceFreq = 0;
+  static uint32_t lastDebounceMode = 0;
+  
+  bool btnFreq = digitalRead(BTN_FREQ_PIN);
+  bool btnMode = digitalRead(BTN_MODE_PIN);
+  
+  // Bouton FREQ
+  if (btnFreq != lastBtnFreq) lastDebounceFreq = millis();
+  
+  if ((millis() - lastDebounceFreq) > 50) {
+    if (btnFreq == LOW && lastBtnFreq == HIGH) {
+      currentFreq = (currentFreq + 1) % numFreqs;
+      updateFreqIndicators();
+      flashFeedback(2, 80);
+      printStatus();
+      delay(200);
+    }
+  }
+  lastBtnFreq = btnFreq;
+  
+  // Bouton MODE
+  if (btnMode != lastBtnMode) lastDebounceMode = millis();
+  
+  if ((millis() - lastDebounceMode) > 50) {
+    if (btnMode == LOW && lastBtnMode == HIGH) {
+      currentMode = (Mode)((currentMode + 1) % numModes);
+      updateFreqIndicators();
+      flashFeedback(currentMode + 1, 80);
+      printStatus();
+      delay(200);
+    }
+  }
+  lastBtnMode = btnMode;
+}
+
+void updateFreqIndicators() {
+  digitalWrite(LED_R_PIN, freqIndicators[currentFreq][0]);
+  digitalWrite(LED_G_PIN, freqIndicators[currentFreq][1]);
+  digitalWrite(LED_B_PIN, freqIndicators[currentFreq][2]);
+}
+
+void printStatus() {
+  Serial.print(F("\n► Fréquence "));
+  Serial.print(freqNames[currentFreq]);
+  Serial.print(F(" ("));
+  Serial.print(frequencies[currentFreq], 2);
+  Serial.print(F(" Hz) | Mode : "));
+  Serial.print(modeNames[currentMode]);
+  Serial.print(F(" | Duty : "));
+  if (currentMode == MODE_DETECTION) {
+    Serial.print(DUTY_DETECTION);
+    Serial.print(F(" (25% → ~5mA)"));
+  } else if (currentMode == MODE_TRAITEMENT) {
+    Serial.print(DUTY_TRAITEMENT);
+    Serial.print(F(" (92% → ~20mA)"));
+  } else {
+    Serial.print(DUTY_BLANC);
+    Serial.print(F(" (50% → ~10mA)"));
+  }
+  Serial.println();
+}
+
+void flashFeedback(uint8_t times, uint16_t delayMs) {
+  uint8_t savedDuty = OCR2B;
+  for (uint8_t i = 0; i < times; i++) {
+    OCR2B = 255;
+    delay(delayMs);
+    OCR2B = 0;
+    delay(delayMs);
+  }
+  OCR2B = savedDuty;
+}
+
+uint16_t readBatteryVoltage() {
+  int adcValue = analogRead(ADC_BATTERY_PIN);
+  // Conversion : 5V × (33k / 133k) = 1.24V max au nœud
+  // ADC Uno : 10-bit (0-1023), Vref = 5V
+  // Vbat = adcValue × (5000mV / 1023) × (133 / 33)
+  uint16_t voltage = (uint32_t)adcValue * 5000 * 133 / 1023 / 33;
+  return voltage;  // Tension en mV
+}
+```
+
+═══════════════════════════════════════════════════════════════════════════════
+ 🧪 TESTS DE VALIDATION
+═══════════════════════════════════════════════════════════════════════════════
+
+═══ TEST 1 : LED PRINCIPALE (PWM simplifié) ═══
+
+Objectif : Vérifier que la LED NSPW500CS s'allume et que le PWM fonctionne
+
+Procédure :
+  1. Uploader le code sur Arduino Uno
+  2. Observer la LED NSPW500CS principale
+  3. Appuyer sur bouton FREQ → LED doit moduler avec clignotement
+
+Résultat attendu :
+  • LED s'allume à l'initialisation (3 flashs)
+  • En mode détection : LED faible intensité (~25% PWM → ~5mA)
+  • En mode traitement : LED forte intensité (92% PWM → ~20mA)
+  • Fréquence A (2.28Hz) : Clignotement visible mais DOUX (modulation)
+  • Fréquence G (146Hz) : Clignotement imperceptible
+
+Mesures oscilloscope (optionnel) :
+  • Sonde sur D3 (avant résistance 47Ω)
+  • Forme d'onde : PWM ~62.5kHz
+  • Enveloppe : Sinusoïdale à fréquence Nogier (ex: 2.28Hz pour A)
+  • Amplitude : Varie entre 0V et 5V (contrôle PWM)
+
+Mesure courant LED :
+  • Insérer multimètre en série avec LED
+  • Détection : ~5-8mA (cible 5mA)
+  • Traitement : ~18-22mA (cible 20mA)
+  • Blanc : ~10-12mA (cible 10mA)
+
+⚡ COMPARAISON v6 → v7 :
+  v6 (350mA LED) : Courant détection 15mA, traitement 254mA
+  v7 (20mA LED)  : Courant détection 5mA, traitement 20mA
+  GAIN : -67% détection, -92% traitement !
+
+═══ TEST 2 : INDICATEURS LED RGB ═══
+
+Objectif : Vérifier le codage couleur des fréquences
+
+Procédure :
+  1. Au démarrage, LED Rouge doit être allumée (fréquence A)
+  2. Appuyer sur BTN_FREQ 6 fois
+  3. Observer la séquence :
+     A (Rouge) → B (Vert) → C (Jaune) → D (Bleu) → E (Magenta) → F (Cyan) → G (Blanc)
+
+Résultat attendu :
+  • Chaque fréquence a sa couleur unique
+  • Pas de LED allumée simultanément sauf combinaisons (Jaune, Magenta, Cyan, Blanc)
+  • Changement immédiat après appui bouton
+
+═══ TEST 3 : SÉLECTION MODE ═══
+
+Objectif : Tester les 3 modes de fonctionnement
+
+Procédure :
+  1. Démarrage en mode DETECTION (Serial Monitor affiche "DETECTION")
+  2. Appuyer sur BTN_MODE → Passer en TRAITEMENT (1 flash)
+  3. Appuyer encore → Passer en BLANC (2 flashs)
+  4. Appuyer encore → Retour DETECTION (3 flashs)
+
+Résultat attendu :
+  • Mode DETECTION : LED faible (~25% PWM, Serial affiche "Duty : 64 (25% → ~5mA)")
+  • Mode TRAITEMENT : LED forte (92% PWM, Serial affiche "Duty : 235 (92% → ~20mA)")
+  • Mode BLANC : LED constante (50% PWM, Serial affiche "Duty : 128 (50% → ~10mA)", pas de modulation)
+
+Vérification Serial Monitor :
+  • Toutes les 2 secondes : affichage "Batterie : XXXX mV | Mode : XXX | Freq : X (XX.XX Hz)"
+  • Duty cycle affiché correspond au mode actuel
+
+═══ TEST 4 : MESURE BATTERIE ═══
+
+Objectif : Valider l'ADC et le diviseur résistif
+
+Procédure :
+  1. Ouvrir Serial Monitor (115200 baud)
+  2. Observer affichage "Batterie : XXXX mV"
+  3. Si alimenté en 5V via USB : devrait afficher ~5000mV
+  4. Si batterie LiPo connectée : afficher 3700-4200mV
+
+Résultat attendu :
+  • Valeur stable (variation < 50mV)
+  • Cohérence avec mesure multimètre directe
+
+Calibration :
+  • Si écart > 100mV, ajuster formule dans readBatteryVoltage()
+  • Facteur correctif = (Vmultimètre / Vaffiché)
+
+═══ TEST 5 : MODULATION 1kHz (Oscilloscope optionnel) ═══
+
+Objectif : Vérifier la porteuse invisible et l'enveloppe Nogier
+
+Procédure :
+  1. Connecter sonde oscilloscope sur D3 (avant résistance 47Ω)
+  2. Trigger sur front montant, timebase 20µs/div
+  3. Sélectionner fréquence A (2.28Hz)
+
+Résultat attendu :
+  • Forme d'onde : PWM ~62.5kHz (période 16µs)
+  • Enveloppe : Sinusoïdale lente, période 438ms (2.28Hz)
+  • Amplitude enveloppe : Varie entre 20% et 90% du max PWM
+
+Capture écran :
+  • Sauvegarder pour documentation projet
+
+═══ TEST 6 : CONSOMMATION (Nouveau v7.0) ═══
+
+Objectif : Valider la faible consommation du circuit simplifié
+
+Procédure :
+  1. Insérer multimètre en série avec rail 5V (mesure courant total)
+  2. Mesurer courant dans chaque mode :
+     - Mode DETECTION : ~13mA total (5mA LED + 8mA électronique)
+     - Mode TRAITEMENT : ~28mA total (20mA LED + 8mA électronique)
+     - Mode BLANC : ~18mA total (10mA LED + 8mA électronique)
+
+Résultat attendu :
+  • Consommation conforme aux spécifications v7.0
+  • Aucun pic de courant (driver simplifié, pas de MOSFET switching)
+
+⚡ COMPARAISON v6 → v7 :
+  v6 : 34mA détection, 254mA traitement (driver op-amp + MOSFET)
+  v7 : 13mA détection, 28mA traitement (résistance directe)
+  GAIN : -62% détection, -89% traitement !
+
+  Autonomie batterie 900mAh :
+  v6 : 26h détection, 3.5h traitement
+  v7 : 69h détection, 32h traitement
+  GAIN : ×2.7 détection, ×9.1 traitement !
+
+═══════════════════════════════════════════════════════════════════════════════
+ 🔧 DÉPANNAGE (Troubleshooting)
+═══════════════════════════════════════════════════════════════════════════════
+
+PROBLÈME 1 : LED principale ne s'allume pas
+
+  Vérifications :
+    ☐ Polarité LED (anode + vers résistance, cathode - vers GND)
+    ☐ Résistance 47Ω bien en série (vérifier avec multimètre)
+    ☐ Code uploadé sans erreur
+    ☐ Pin D3 configuré en OUTPUT
+  
+  Test manuel :
+    • Connecter anode LED directement à 5V (via 47Ω)
+    • Connecter cathode LED à GND
+    • → Si LED s'allume, problème vient du PWM
+
+PROBLÈME 2 : LED principale trop faible
+
+  Cause probable : Résistance trop élevée ou duty cycle trop bas
+  
+  Solutions :
+    • Vérifier résistance = 47Ω (pas 470Ω !)
+    • Augmenter DUTY_TRAITEMENT de 235 à 255 (100%)
+    • Mesurer tension aux bornes LED : devrait être 3.0-3.6V
+
+PROBLÈME 3 : LED principale trop brillante / clignotement trop visible
+
+  Cause probable : Modulation trop profonde ou fréquence PWM trop basse
+  
+  Solutions :
+    • Réduire MODULATION_DEPTH dans generateModulation() de 0.70 à 0.50
+    • Augmenter MIN_INTENSITY de 0.20 à 0.30
+    • Vérifier fréquence Timer2 (devrait être > 10kHz)
+
+PROBLÈME 4 : LED indicateurs ne s'allument pas
+
+  Vérifications :
+    ☐ Polarité LEDs (anode vers résistance, cathode vers GND)
+    ☐ Résistances 470Ω présentes
+    ☐ Pins D11, D10, D9 bien configurés en OUTPUT
+  
+  Test :
+    • digitalWrite(LED_R_PIN, HIGH) dans setup()
+    • LED Rouge doit s'allumer
+
+PROBLÈME 5 : Boutons ne répondent pas
+
+  Vérifications :
+    ☐ Connexion bouton correcte (une patte vers Dx, autre vers GND)
+    ☐ INPUT_PULLUP activé dans pinMode()
+    ☐ Serial.println(digitalRead(BTN_FREQ_PIN)) affiche HIGH au repos
+  
+  Test anti-rebond :
+    • Ajouter condensateur 100nF entre Dx et GND
+    • Augmenter délai debounce de 50ms à 100ms
+
+PROBLÈME 6 : Mesure batterie incorrecte
+
+  Vérifications :
+    ☐ Diviseur 100kΩ / 33kΩ bien connecté
+    ☐ Nœud diviseur vers A0 (pas de court-circuit)
+    ☐ Tension au nœud = Vbat × (33 / 133) (mesure multimètre)
+  
+  Calibration :
+    • Mesurer Vbat avec multimètre : ex 5.00V
+    • Mesurer Vnœud avec multimètre : devrait être 1.24V
+    • Ajuster formule dans code si écart
+
+PROBLÈME 7 : Consommation trop élevée
+
+  Vérifications :
+    ☐ Pas de court-circuit sur breadboard
+    ☐ LED NSPW500CS (20mA), pas autre modèle haute puissance
+    ☐ Résistance 47Ω (pas 4.7Ω !)
+    ☐ PWM duty cycle correct (Serial Monitor affiche valeurs cohérentes)
+  
+  Mesure détaillée :
+    • Déconnecter LED principale → Mesurer courant électronique seul (~8mA)
+    • Reconnecter LED → Mesurer courant total (doit augmenter de 5-20mA selon mode)
+
+═══════════════════════════════════════════════════════════════════════════════
+ 📊 TABLEAU DE MESURES RECOMMANDÉES
+═══════════════════════════════════════════════════════════════════════════════
+
+Compléter ce tableau lors des tests pour validation :
+
+┌──────────────┬───────────────┬────────────────┬────────────────┬─────────┐
+│  Fréquence   │  Mode         │  Courant LED   │  Duty PWM      │  OK ?   │
+├──────────────┼───────────────┼────────────────┼────────────────┼─────────┤
+│ A (2.28Hz)   │ Détection     │  _____ mA      │  64 (25%)      │  ☐      │
+│ A (2.28Hz)   │ Traitement    │  _____ mA      │  235 (92%)     │  ☐      │
+│ D (18.25Hz)  │ Détection     │  _____ mA      │  64 (25%)      │  ☐      │
+│ D (18.25Hz)  │ Traitement    │  _____ mA      │  235 (92%)     │  ☐      │
+│ G (146Hz)    │ Détection     │  _____ mA      │  64 (25%)      │  ☐      │
+│ G (146Hz)    │ Traitement    │  _____ mA      │  235 (92%)     │  ☐      │
+│ -            │ Blanc         │  _____ mA      │  128 (50%)     │  ☐      │
+└──────────────┴───────────────┴────────────────┴────────────────┴─────────┘
+
+Cibles v7.0 :
+  • Détection : ~5mA LED (vs 15mA v6)
+  • Traitement : ~20mA LED (vs 254mA v6)
+  • Blanc : ~10mA LED (vs ~180mA v6)
+
+Mesure batterie :
+  • Tension affichée Serial : _______ mV
+  • Tension multimètre : _______ mV
+  • Écart : _______ mV (acceptable si < 100mV)
+
+Consommation totale (Arduino Uno + circuit) :
+  • Mode DETECTION : _______ mA (cible ~13mA)
+  • Mode TRAITEMENT : _______ mA (cible ~28mA)
+  • Mode BLANC : _______ mA (cible ~18mA)
+
+═══════════════════════════════════════════════════════════════════════════════
+ ✅ CHECKLIST VALIDATION FINALE
+═══════════════════════════════════════════════════════════════════════════════
+
+Avant de passer à la fabrication PCB, vérifier :
+
+FONCTIONNEMENT :
+  ☐ LED principale s'allume avec modulation
+  ☐ 7 fréquences sélectionnables (bouton FREQ)
+  ☐ 3 modes fonctionnels (bouton MODE)
+  ☐ Indicateurs LED RGB affichent couleurs correctes
+  ☐ Mesure batterie cohérente avec multimètre
+  ☐ Modulation invisible à l'œil (fréquences hautes)
+  ☐ Modulation douce visuellement (fréquences basses)
+
+ÉLECTRIQUE v7.0 :
+  ☐ Courant LED conforme (5mA détection, 20mA traitement)
+  ☐ Consommation totale < 30mA (vs 254mA v6)
+  ☐ Pas de surchauffe composants (tous froids !)
+  ☐ PWM duty cycle affiché dans Serial Monitor correct
+
+CODE :
+  ☐ Compilation sans erreur ni warning
+  ☐ Upload réussi sur Arduino Uno
+  ☐ Serial Monitor affiche infos correctes (batterie, mode, fréquence, duty)
+  ☐ Pas de freeze ou reset intempestif
+
+MÉCANIQUE :
+  ☐ Breadboard stable (pas de faux contacts)
+  ☐ Fils bien enfoncés
+  ☐ Boutons répondent sans rebond excessif
+
+SIMPLIFICATION v7.0 :
+  ☐ Circuit fonctionne SANS op-amp
+  ☐ Circuit fonctionne SANS MOSFET
+  ☐ Circuit fonctionne SANS Rsense
+  ☐ 1 seule résistance 47Ω suffit !
+
+═══════════════════════════════════════════════════════════════════════════════
+ 🚀 PROCHAINES ÉTAPES (Après validation breadboard)
+═══════════════════════════════════════════════════════════════════════════════
+
+Une fois tous les tests passés avec succès :
+
+1. ADAPTATION CODE POUR ATmega328P (si besoin)
+   ☐ Code déjà compatible (pins identiques)
+   ☐ Modifier AREF pour 3.3V (code PCB final)
+   ☐ Tester formule ADC batterie avec Vref 3.3V
+
+2. CONCEPTION PCB KICAD
+   ☐ Créer schématique selon "schema_electronique_ATmega328P_v7.0.txt"
+   ☐ Router PCB selon "guide_pcb_layout_16x70mm_v7.0.txt"
+   ☐ Vérifier DRC/ERC (0 erreur)
+   ☐ Générer Gerbers + BOM
+
+3. FABRICATION
+   ☐ Commander PCB (JLCPCB/PCBWay)
+   ☐ Commander composants (Digikey/LCSC selon BOM_complete_v7.0.txt)
+   ☐ Attendre livraison (2-3 semaines)
+
+4. ASSEMBLAGE PCB
+   ☐ Soudure CMS (fer ou air chaud + stencil)
+   ☐ Soudure LED NSPW500CS through-hole (pattes pliées 90°)
+   ☐ Test continuité (multimètre)
+   ☐ Programmation ATmega328P via ISP
+   ☐ Tests fonctionnels
+
+5. INTÉGRATION MÉCANIQUE
+   ☐ Insertion PCB dans tube stylet Ø18mm
+   ☐ Fixation boutons latéraux
+   ☐ Connexion batterie
+
+6. TESTS FINAUX
+   ☐ Test autonomie batterie (vérifier 69h détection, 32h traitement)
+   ☐ Test charge USB
+   ☐ Validation protocoles thérapeutiques
+   ☐ Retours utilisateurs
+
+═══════════════════════════════════════════════════════════════════════════════
+ 🎯 AVANTAGES v7.0 vs v6 (Résumé)
+═══════════════════════════════════════════════════════════════════════════════
+
+MONTAGE BREADBOARD :
+  ✓ 5× plus rapide (moins de composants)
+  ✓ 7 composants éliminés (op-amp, MOSFET, Rsense, filtres)
+  ✓ Aucun réglage requis (pas de trimmer op-amp)
+  ✓ Moins d'erreurs de câblage possibles
+
+CONSOMMATION :
+  ✓ Détection : 13mA vs 34mA (-62%)
+  ✓ Traitement : 28mA vs 254mA (-89%)
+  ✓ Autonomie : ×2.7 à ×9.1 selon mode
+
+COÛT :
+  ✓ Composants breadboard : -7€ (op-amp, MOSFET, Rsense non requis)
+  ✓ BOM PCB final : 20.48€ vs 22.90€ (-10.6%)
+
+FIABILITÉ :
+  ✓ Circuit plus simple = moins de points de défaillance
+  ✓ Pas de MOSFET à chauffer
+  ✓ Pas d'op-amp à régler
+
+PERFORMANCE :
+  ✓ LED CRI>90 identique
+  ✓ Modulation Nogier identique
+  ✓ Luminosité suffisante pour thérapie
+
+═══════════════════════════════════════════════════════════════════════════════
+ 📝 FIN DU GUIDE TEST BREADBOARD v7.0
+═══════════════════════════════════════════════════════════════════════════════
+
+Pour toute question ou amélioration, consulter :
+  • schema_electronique_ATmega328P_v7.0.txt (schéma complet)
+  • BOM_complete_v7.0.txt (composants et prix)
+  • MIGRATION_v6_to_v7.txt (explications changements)
+  • stylet_auriculo_ATmega328P_v7.0.ino (code Arduino)
+  • guide_pcb_layout_16x70mm_v7.0.txt (layout PCB)

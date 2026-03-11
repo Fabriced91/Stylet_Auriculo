@@ -1,0 +1,139 @@
+{
+  "version": 1,
+  "author": "Projet Auriculothérapie",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "wokwi-arduino-uno",
+      "id": "uno",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led_main",
+      "top": -38.4,
+      "left": 249.8,
+      "attrs": { "color": "white", "label": "LED NSPW500CS (principale)" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r_led",
+      "top": -19.2,
+      "left": 172.8,
+      "attrs": { "value": "47" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led_red",
+      "top": 96,
+      "left": 326.6,
+      "attrs": { "color": "red", "label": "Indicateur Rouge" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r_red",
+      "top": 105.6,
+      "left": 249.6,
+      "attrs": { "value": "470" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led_green",
+      "top": 134.4,
+      "left": 326.6,
+      "attrs": { "color": "green", "label": "Indicateur Vert" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r_green",
+      "top": 144,
+      "left": 249.6,
+      "attrs": { "value": "470" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led_blue",
+      "top": 172.8,
+      "left": 326.6,
+      "attrs": { "color": "blue", "label": "Indicateur Bleu" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r_blue",
+      "top": 182.4,
+      "left": 249.6,
+      "attrs": { "value": "470" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn_freq",
+      "top": -124.8,
+      "left": 326.4,
+      "attrs": { "color": "green", "label": "FREQ" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn_mode",
+      "top": -124.8,
+      "left": 422.4,
+      "attrs": { "color": "blue", "label": "MODE" }
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "pot_battery",
+      "top": -220.8,
+      "left": 182.4,
+      "attrs": { "label": "Batterie Sim" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r_bat_high",
+      "top": -192,
+      "left": 297.6,
+      "rotate": 90,
+      "attrs": { "value": "100000" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r_bat_low",
+      "top": -144,
+      "left": 297.6,
+      "rotate": 90,
+      "attrs": { "value": "33000" }
+    }
+  ],
+  "connections": [
+    [ "uno:3", "r_led:1", "green", [ "h", 48, "v", -48 ] ],
+    [ "r_led:2", "led_main:A", "green", [ "v", 0 ] ],
+    [ "led_main:C", "uno:GND.1", "black", [ "v", 19.2, "h", -240 ] ],
+    
+    [ "uno:11", "r_red:1", "red", [ "h", 96, "v", 38.4 ] ],
+    [ "r_red:2", "led_red:A", "red", [ "v", 0 ] ],
+    [ "led_red:C", "uno:GND.2", "black", [ "v", 9.6, "h", -316.8 ] ],
+    
+    [ "uno:10", "r_green:1", "green", [ "h", 96, "v", 76.8 ] ],
+    [ "r_green:2", "led_green:A", "green", [ "v", 0 ] ],
+    [ "led_green:C", "uno:GND.2", "black", [ "v", 9.6, "h", -316.8 ] ],
+    
+    [ "uno:9", "r_blue:1", "blue", [ "h", 96, "v", 115.2 ] ],
+    [ "r_blue:2", "led_blue:A", "blue", [ "v", 0 ] ],
+    [ "led_blue:C", "uno:GND.2", "black", [ "v", 9.6, "h", -316.8 ] ],
+    
+    [ "btn_freq:1.l", "uno:2", "green", [ "h", -28.8, "v", 134.4 ] ],
+    [ "btn_freq:2.r", "uno:GND.1", "black", [ "h", 0, "v", 115.2, "h", -336 ] ],
+    
+    [ "btn_mode:1.l", "uno:4", "blue", [ "h", -124.8, "v", 134.4 ] ],
+    [ "btn_mode:2.r", "uno:GND.1", "black", [ "h", 0, "v", 115.2, "h", -432 ] ],
+    
+    [ "pot_battery:SIG", "r_bat_high:1", "orange", [ "h", 67.2, "v", 28.8 ] ],
+    [ "pot_battery:VCC", "uno:5V", "red", [ "h", -48, "v", 220.8 ] ],
+    [ "pot_battery:GND", "uno:GND.3", "black", [ "h", -9.6, "v", 220.8 ] ],
+    
+    [ "r_bat_high:2", "r_bat_low:1", "orange", [ "v", 28.8 ] ],
+    [ "r_bat_low:2", "uno:GND.3", "black", [ "v", 28.8, "h", -297.6 ] ],
+    [ "r_bat_high:2", "uno:A0", "orange", [ "h", -96, "v", 124.8 ] ]
+  ],
+  "dependencies": {}
+}

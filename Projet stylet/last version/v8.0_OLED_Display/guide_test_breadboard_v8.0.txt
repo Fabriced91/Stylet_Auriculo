@@ -1,0 +1,104 @@
+
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║          GUIDE TEST BREADBOARD - Arduino Uno/Nano (v8.0)                    ║
+║          Validation fonctionnelle avant fabrication PCB final                ║
+║                  Stylet Auriculothérapie v8.0                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+═══════════════════════════════════════════════════════════════════════════════
+ 🎯 OBJECTIFS DU TEST BREADBOARD
+═══════════════════════════════════════════════════════════════════════════════
+
+Ce guide permet de VALIDER le fonctionnement complet du stylet v8.0 sur breadboard, en utilisant un Arduino Uno ou Nano (simulation ATmega328P-AU).
+
+Vous pourrez tester :
+  ✓ Modulation 976Hz des fréquences de Nogier
+  ✓ 3 modes (Détection / Traitement / Blanc)
+  ✓ Sélection fréquence via boutons
+  ✓ Affichage OLED (menus, timer, batterie)
+  ✓ Mesure batterie
+  ✓ Extinction automatique OLED
+
+NOUVEAUTÉS v8.0 :
+  ⚡ Menu OLED interactif (bouton MENU)
+  ⚡ Timer de soin intégré
+  ⚡ Modulation réactivée (porteuse 976Hz)
+  ⚡ Plus de LEDs RGB ni expandeur PCF8574
+
+═══════════════════════════════════════════════════════════════════════════════
+ 📦 MATÉRIEL REQUIS
+═══════════════════════════════════════════════════════════════════════════════
+
+ÉLECTRONIQUE :
+  ☐ 1× Arduino Uno ou Nano (ATmega328P)
+  ☐ 1× Breadboard 400 points minimum
+  ☐ 1× Alimentation 3.3V ou batterie LiPo 3.7V
+  ☐ 10× Fils jumper
+  ☐ 1× Multimètre (mesure tension/courant)
+
+COMPOSANTS :
+  ☐ 1× LED Nichia NSPW500CS (LED principale, CRI>90)
+  ☐ 1× Résistance 100Ω (série LED principale)
+  ☐ 3× Boutons poussoirs (FREQ, MODE, MENU)
+  ☐ 1× Écran OLED SSD1306 (I2C, 128x32, adresse 0x3C)
+  ☐ 2× Résistances 4.7kΩ (pull-ups I2C)
+  ☐ 1× Diviseur résistif batterie (100kΩ/33kΩ)
+
+═══════════════════════════════════════════════════════════════════════════════
+ 🔌 SCHÉMA DE CÂBLAGE PRINCIPAL
+═══════════════════════════════════════════════════════════════════════════════
+
+| Fonction         | Arduino Pin |
+|------------------|-------------|
+| LED principale   | D3          |
+| Bouton FREQ      | D2          |
+| Bouton MODE      | D4          |
+| Bouton MENU      | D8          |
+| OLED SDA         | A4          |
+| OLED SCL         | A5          |
+| Batterie ADC     | A0          |
+
+• LED principale : Anode sur +3.3V, cathode sur D3 via R1 100Ω
+• OLED : SDA (A4), SCL (A5), VCC 3.3V, GND
+• Boutons :
+    - FREQ : D2 → bouton → GND
+    - MODE : D4 → bouton → GND
+    - MENU : D8 → bouton → GND
+• Diviseur batterie : BAT+ → 100kΩ → A0 → 33kΩ → GND
+• Pull-ups I2C : 4.7kΩ entre A4/A5 et 3.3V
+
+═══════════════════════════════════════════════════════════════════════════════
+ 🧪 ÉTAPES DE TEST
+═══════════════════════════════════════════════════════════════════════════════
+
+1. Charger le firmware v8.0 (stylet_auriculo_ATmega328P_v8.0.ino)
+2. Vérifier l'affichage OLED (splash screen, menus, timer)
+3. Tester chaque bouton (FREQ, MODE, MENU)
+4. Vérifier modulation LED (PWM sur D3, intensité variable selon mode)
+5. Vérifier mesure batterie sur OLED (A0)
+6. Vérifier extinction automatique OLED (10s sans interaction)
+
+═══════════════════════════════════════════════════════════════════════════════
+ ✅ POINTS DE CONTRÔLE
+═══════════════════════════════════════════════════════════════════════════════
+
+• Aucune LED d'indication RGB ni expandeur PCF8574
+• Seule la LED principale s'allume selon le mode sélectionné
+• Les boutons changent bien la fréquence, le mode, et naviguent dans le menu OLED
+• La mesure batterie s'affiche correctement
+• L'extinction automatique de l'écran fonctionne
+• Le reste du fonctionnement doit être identique à la version précédente (hors LEDs RGB)
+
+═══════════════════════════════════════════════════════════════════════════════
+ 💡 CONSEILS
+═══════════════════════════════════════════════════════════════════════════════
+
+• Utiliser des fils courts pour l'I2C
+• Vérifier la tension batterie avant branchement
+• Utiliser une breadboard de qualité pour éviter les faux contacts
+• Programmer l'Arduino via l'IDE Arduino (aucun programmateur ISP requis)
+
+---
+Document mis à jour pour la version v8.0 (test breadboard Arduino, sans LEDs RGB).
+
+Document mis à jour pour la version v8.0 sans LEDs d'indication. Pour toute question, consulter la documentation principale.

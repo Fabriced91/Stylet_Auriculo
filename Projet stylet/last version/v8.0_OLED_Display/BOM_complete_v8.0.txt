@@ -27,7 +27,6 @@
 REF  | QTÉ | DÉSIGNATION              | VALEUR/MODÈLE        | BOÎTIER    | LCSC    | PRIX   | NOTES
 ─────┼─────┼──────────────────────────┼──────────────────────┼────────────┼─────────┼────────┼─────────────
 U1   |  1  | Microcontrôleur AVR      | ATmega328P-AU        | TQFP-32    | C14877  | 2.45€  | 8MHz, 32KB Flash
-U2   |  1  | Expandeur I2C GPIO       | PCF8574T             | SOIC-16    | C56066  | 0.35€  | Adresse 0x20
 U3   |  1  | Régulateur LDO 3.3V      | MCP1700T-3302E/TT    | SOT-23-3   | C39051  | 0.18€  | 250mA, Vdrop=178mV
 
 ┌──────────────────────────────────────────────────────────────────────────┐
@@ -46,9 +45,6 @@ J3_CABLE  |  1  | Câble connecteur    | JST-4 pins 10cm      | Cable         | 
 REF  | QTÉ | DÉSIGNATION              | VALEUR/MODÈLE        | BOÎTIER    | LCSC    | PRIX   | NOTES
 ─────┼─────┼──────────────────────────┼──────────────────────┼────────────┼─────────┼────────┼─────────────
 D1   |  1  | LED principale           | Nichia NSPW500CS     | 5mm TH     | -       | 1.20€  | CRI>90, 3200K, blanc chaud
-D2   |  1  | LED Rouge                | LED_0805             | 0805       | C84256  | 0.02€  | Vf=2.0V, If=2mA
-D3   |  1  | LED Verte                | LED_0805             | 0805       | C72043  | 0.02€  | Vf=3.2V, If=2mA
-D4   |  1  | LED Bleue                | LED_0805             | 0805       | C72041  | 0.02€  | Vf=3.2V, If=2mA
 
 ┌──────────────────────────────────────────────────────────────────────────┐
 │ RÉSISTANCES SMD 0805                                                     │
@@ -59,9 +55,6 @@ REF    | QTÉ | VALEUR  | TOLÉRANCE | PUISSANCE | BOÎTIER | LCSC    | PRIX/U |
 R1     |  1  | 100Ω    | 1%        | 125mW     | 0805    | C17408  | 0.01€  | Limitation LED principale
 R2a    |  1  | 4.7kΩ   | 1%        | 125mW     | 0805    | C17673  | 0.01€  | Pull-up I2C SDA
 R2b    |  1  | 4.7kΩ   | 1%        | 125mW     | 0805    | C17673  | 0.01€  | Pull-up I2C SCL
-R3     |  1  | 470Ω    | 1%        | 125mW     | 0805    | C17710  | 0.01€  | LED Rouge
-R4     |  1  | 470Ω    | 1%        | 125mW     | 0805    | C17710  | 0.01€  | LED Verte
-R5     |  1  | 470Ω    | 1%        | 125mW     | 0805    | C17710  | 0.01€  | LED Bleue
 R6     |  1  | 10kΩ    | 1%        | 125mW     | 0805    | C17414  | 0.01€  | Pull-up RESET
 R8     |  1  | 100kΩ   | 1%        | 125mW     | 0805    | C17407  | 0.01€  | Diviseur batterie haut
 R9     |  1  | 33kΩ    | 1%        | 125mW     | 0805    | C17633  | 0.01€  | Diviseur batterie bas

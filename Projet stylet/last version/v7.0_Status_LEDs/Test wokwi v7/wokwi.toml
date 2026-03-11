@@ -1,0 +1,7 @@
+[wokwi]
+version = 1
+firmware = "sketch.ino"
+elf = ""
+
+[[net.forward]]
+# Pas de forward nécessaire pour cette simulation

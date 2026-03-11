@@ -32,18 +32,6 @@
          │                │                              │
    ┌─────┴─────┐    ┌─────┴─────┐              ┌────────┴────────┐
    │           │    │           │              │                 │
-   │  OLED     │    │  PCF8574T │              │  ATmega328P-AU  │
-   │  128x32   │    │  I2C      │              │                 │
-   │  @0x3C    │    │  @0x20    │              │  8MHz, 3.3V     │
-   │           │    │           │              │                 │
-   └─────┬─────┘    └─────┬─────┘              └────────┬────────┘
-         │                │                              │
-         │  SDA/SCL       │  SDA/SCL                     │ SDA/SCL
-         │  (pull-ups     │  (pull-ups                   │ (PC4/PC5)
-         │   4.7kΩ)       │   4.7kΩ)                     │
-         │                │                              │
-         └────────────────┴──────────────────────────────┘
-                            BUS I2C
 
 
 ══════════════════════════════════════════════════════════════════════════════
@@ -78,8 +66,8 @@ PIN  | NOM       | FONCTION                    | CONNEXION
  24  | PC1       | ⚠️ Non connecté             | NC (flag NC)
  25  | PC2       | ⚠️ Non connecté             | NC (flag NC)
  26  | PC3       | ⚠️ Non connecté             | NC (flag NC)
- 27  | PC4/SDA   | I2C Data                    | SDA (PCF8574 + OLED)
- 28  | PC5/SCL   | I2C Clock                   | SCL (PCF8574 + OLED)
+ 27  | PC4/SDA   | I2C Data                    | SDA (OLED)
+ 28  | PC5/SCL   | I2C Clock                   | SCL (OLED)
  29  | PC6/RESET | Reset                       | J1 Pin 5 + R6 (10kΩ pull-up)
  30  | PD0/RXD   | ⚠️ Non connecté             | NC (flag NC)
  31  | PD1/TXD   | ⚠️ Non connecté             | NC (flag NC)
@@ -93,11 +81,6 @@ NOTES :
 
 
 ══════════════════════════════════════════════════════════════════════════════
-  🔌 U2 : PCF8574T (SOIC-16) - Expandeur I2C
-══════════════════════════════════════════════════════════════════════════════
-
-PIN | NOM   | FONCTION                  | CONNEXION
-────┼───────┼───────────────────────────┼──────────────────────────────────
  1  | A0    | Adresse I2C bit 0         | GND (adresse 0x20)
  2  | A1    | Adresse I2C bit 1         | GND (adresse 0x20)
  3  | A2    | Adresse I2C bit 2         | GND (adresse 0x20)
@@ -216,28 +199,6 @@ D1 - LED Nichia NSPW500CS
   🎨 LEDS RGB (Indicateurs fréquence)
 ══════════════════════════════════════════════════════════════════════════════
 
-D2 - LED Rouge SMD 0805
-  Anode  : PCF8574 P0 (pin 4)
-  Cathode: GND (via R3 470Ω)
-  Vf     : 2.0V, If = 2mA
-
-D3 - LED Verte SMD 0805
-  Anode  : PCF8574 P1 (pin 5)
-  Cathode: GND (via R4 470Ω)
-  Vf     : 3.2V, If = 2mA
-
-D4 - LED Bleue SMD 0805
-  Anode  : PCF8574 P2 (pin 6)
-  Cathode: GND (via R5 470Ω)
-  Vf     : 3.2V, If = 2mA
-
-CALCUL RÉSISTANCES (R3, R4, R5) :
-  R = (Vcc - Vf) / If
-  R_rouge = (3.3 - 2.0) / 0.002 = 650Ω → normalisé 470Ω (If ≈ 2.8mA)
-  R_verte = (3.3 - 3.2) / 0.002 = 50Ω  → normalisé 470Ω (If ≈ 0.2mA)
-  R_bleue = (3.3 - 3.2) / 0.002 = 50Ω  → normalisé 470Ω (If ≈ 0.2mA)
-  
-  ⚠️ Valeur unique 470Ω pour toutes (simplicité BOM)
 
 
 ══════════════════════════════════════════════════════════════════════════════

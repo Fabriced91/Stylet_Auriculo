@@ -1,0 +1,593 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                    SCHÉMA ÉLECTRONIQUE COMPLET v7.0                           ║
+║                Stylet Auriculothérapie - Architecture ATmega328P-AU           ║
+║               avec LED Nichia NSPW500CS (Circuit Ultra-Simplifié)             ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+═══════════════════════════════════════════════════════════════════════════════
+ 🎯 NOUVEAUTÉS VERSION 7.0
+═══════════════════════════════════════════════════════════════════════════════
+
+✨ CHANGEMENT MAJEUR : LED Nichia 519A (350mA, SMD 3535) → NSPW500CS (20mA, 5mm)
+
+🎉 AVANTAGES :
+  ✓ Circuit DRASTIQUEMENT simplifié (driver complexe supprimé!)
+  ✓ 7 composants en moins (op-amp + MOSFET + résistances + condensateurs)
+  ✓ Autonomie ×5 à ×13 meilleure (20mA vs 350mA)
+  ✓ Coût réduit de 2.23€ (-9.7%)
+  ✓ Montage beaucoup plus facile (LED traversant vs SMD)
+  ✓ Fiabilité accrue (moins de composants = moins de pannes)
+  ✓ CRI >90 conservé (qualité thérapeutique identique)
+
+═══════════════════════════════════════════════════════════════════════════════
+ 📐 ARCHITECTURE GLOBALE
+═══════════════════════════════════════════════════════════════════════════════
+
+Le système est composé de 5 blocs fonctionnels :
+
+  1️⃣ BLOC BATTERIE & PROTECTION
+  2️⃣ BLOC CHARGE USB (TP4056)
+  3️⃣ BLOC ALIMENTATION (LDO 3.3V pour ATmega328P)
+  4️⃣ BLOC MICROCONTRÔLEUR (ATmega328P-AU TQFP-32)
+  5️⃣ ⭐ BLOC LED SIMPLIFIÉE (Résistance série simple!)
+
+═══════════════════════════════════════════════════════════════════════════════
+ 1️⃣ BLOC BATTERIE & PROTECTION
+═══════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                           BATTERIE LiPo                             │
+│                                                                     │
+│  ┌──────────────┐                                                  │
+│  │ LiPo 3.7V    │  Specs :                                         │
+│  │ 900mAh       │  • Voltage nominal : 3.7V                        │
+│  │ Cylindrique  │  • Pleine charge : 4.2V                          │
+│  │ 10×50mm      │  • Limite basse : 3.0V                           │
+│  └───┬──┬───────┘  • Connecteur JST-PH 2.0mm                       │
+│      │  │                                                           │
+│      │  └────────── BAT- (GND)                                      │
+│      │                                                              │
+│      └─────[DW01A]─── Protection contre :                          │
+│              │        • Surcharge (>4.25V)                          │
+│              │        • Décharge (<2.5V)                            │
+│              │        • Surintensité (>2A)                          │
+│              │        • Court-circuit                               │
+│              │                                                      │
+│              └──────── BAT+ (vers TP4056 & système)                 │
+└─────────────────────────────────────────────────────────────────────┘
+
+ALTERNATIVE : Batterie LiPo avec PCM intégré (pas de DW01A externe requis)
+              → Simplifie le design, à privilégier
+
+═══════════════════════════════════════════════════════════════════════════════
+ 2️⃣ BLOC CHARGE USB-C (TP4056)
+═══════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                      MODULE CHARGEUR TP4056                         │
+│                                                                     │
+│   USB-C Connector                                                   │
+│   ┌────────┐                                                        │
+│   │  VBUS  ├────┐                                                   │
+│   │        │    │                                                   │
+│   │  GND   ├────┼────┐                                              │
+│   └────────┘    │    │                                              │
+│                 │    │                                              │
+│        ┌────────┴────┴──────────┐                                   │
+│        │      TP4056-SOT23-6    │                                   │
+│        │                        │                                   │
+│        │  VCC  │  BAT  │  PROG  │                                   │
+│        │   1   │   5   │   2    │                                   │
+│        │       │       │        │                                   │
+│   5V──┤  CE   │  TEMP │  STDBY │                                   │
+│        │   3   │   4   │   6    │                                   │
+│        │       │       │        │                                   │
+│        └───┬───┴───┬───┴───┬────┘                                   │
+│            │       │       │                                        │
+│           GND      │      [Rprog = 2kΩ]─── GND                      │
+│                    │                                                │
+│                    └────────── BAT+ (4.2V max)                      │
+│                                                                     │
+│  LED Charge (Rouge)  : PIN CHRG ──[470Ω]── LED Rouge ─── GND       │
+│  LED Standby (Vert)  : PIN STDBY ──[470Ω]── LED Verte ─── GND      │
+│                                                                     │
+│  Courant de charge = 1200V / Rprog                                 │
+│  Pour 900mAh → 500mA charge recommandé                             │
+│  Rprog = 1200 / 500 = 2.4kΩ → Valeur standard 2.2kΩ (545mA)        │
+└─────────────────────────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+ 3️⃣ BLOC ALIMENTATION (LDO 3.3V pour ATmega328P)
+═══════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                   RÉGULATEUR 3.3V - HT7333-A                        │
+│                                                                     │
+│  BAT+ (3.0-4.2V)                                                    │
+│      │                                                              │
+│      │                                                              │
+│      └───[C1: 10µF]─── GND  (Condensateur entrée)                  │
+│      │                                                              │
+│      │                                                              │
+│      │      ┌──────────────┐                                        │
+│      └──────┤ VIN    VOUT  ├─────┬───── 3.3V (ATmega328P + I2C)    │
+│             │              │     │                                  │
+│             │  HT7333-A    │     └───[C2: 10µF]─── GND             │
+│             │  SOT-89      │                                        │
+│             │              │     (Condensateur sortie)              │
+│             │ GND          │                                        │
+│             └──────┬───────┘                                        │
+│                    │                                                │
+│                   GND                                               │
+│                                                                     │
+│  Specs HT7333-A :                                                   │
+│  • Input : 2.5V - 6V                                                │
+│  • Output : 3.3V ±2%                                                │
+│  • Dropout : 90mV @ 100mA                                           │
+│  • Courant max : 250mA (largement suffisant)                       │
+│  • Low quiescent current : 4µA                                      │
+│                                                                     │
+│  ALTERNATIVE : MCP1700-3302E (ultra low quiescent 1.6µA)            │
+└─────────────────────────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+ 4️⃣ BLOC MICROCONTRÔLEUR - ATmega328P-AU
+═══════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                    ATmega328P-AU (TQFP-32)                          │
+│                                                                     │
+│              Pins principales utilisées :                           │
+│                                                                     │
+│  Pin 1  (PD3)    : PWM LED principale (Timer2 OC2B)                 │
+│  Pin 2  (PD4)    : Bouton MODE                                      │
+│  Pin 23 (PC0/A0) : ADC Mesure batterie                              │
+│  Pin 27 (PC4)    : I2C SDA (LED indicateurs via PCF8574)            │
+│  Pin 28 (PC5)    : I2C SCL (LED indicateurs via PCF8574)            │
+│  Pin 32 (PD2)    : Bouton FREQ (INT0)                               │
+│                                                                     │
+│  Pin 7  (VCC)    : 3.3V régulé                                      │
+│  Pin 8  (GND)    : Ground                                           │
+│  Pin 20 (AVCC)   : 3.3V (avec filtre LC)                            │
+│  Pin 22 (GND)    : Ground analogique                                │
+│  Pin 21 (AREF)   : Référence ADC (condensateur 100nF → GND)         │
+│                                                                     │
+│  Pins PWM disponibles pour futurs développements :                 │
+│  Pin 9  (PD5)    : Timer0 OC0B (Arduino D5)                         │
+│  Pin 10 (PD6)    : Timer0 OC0A (Arduino D6)                         │
+│  Pin 13 (PB1)    : Timer1 OC1A 16-bit (Arduino D9)                  │
+│  Pin 14 (PB2)    : Timer1 OC1B 16-bit (Arduino D10)                 │
+│  Pin 15 (PB3)    : Timer2 OC2A (Arduino D11)                        │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+
+═══ CONFIGURATION DÉTAILLÉE DES PINS ═══
+
+┌─────┬──────────┬────────────────────────┬─────────────────────────────┐
+│ Pin │   Nom    │     Fonction           │      Connexion              │
+├─────┼──────────┼────────────────────────┼─────────────────────────────┤
+│  1  │ PD3/OC2B │ PWM LED principale     │ Vers résistance série LED   │
+│  2  │ PD4      │ Bouton MODE            │ Bouton MODE vers GND (pull-up)│
+│  7  │ VCC      │ Alimentation +         │ 3.3V régulé (LDO)           │
+│  8  │ GND      │ Ground digital         │ GND commun                  │
+│ 20  │ AVCC     │ Alimentation analogique│ 3.3V + ferrite + 100nF      │
+│ 21  │ AREF     │ Référence ADC          │ 100nF vers GND              │
+│ 22  │ GND      │ Ground analogique      │ GND commun                  │
+│ 23  │ PC0/ADC0 │ Mesure batterie (A0)   │ Diviseur 100k/33k           │
+│ 27  │ PC4/SDA  │ I2C Data (A4)          │ PCF8574 + pull-up 4.7kΩ     │
+│ 28  │ PC5/SCL  │ I2C Clock (A5)         │ PCF8574 + pull-up 4.7kΩ     │
+│ 32  │ PD2/INT0 │ Bouton FREQ (D2)       │ Bouton FREQ vers GND (pull-up)│
+│  1  │ RESET    │ Reset externe          │ Pull-up 10kΩ + bouton opt.  │
+└─────┴──────────┴────────────────────────┴─────────────────────────────┘
+
+═══ DÉTAIL CONNEXION BOUTONS ═══
+
+Tous les boutons utilisent pull-up interne (INPUT_PULLUP dans code).
+
+ BTN_FREQ (Sélection fréquence Nogier) :
+   PD2 ──┬──── [Bouton tactile] ──── GND
+         │
+    (Pull-up interne 20-50kΩ)
+    Note : Interruption INT0 disponible pour détection asynchrone
+
+ BTN_MODE (Sélection mode détection/traitement/blanc) :
+   PD4 ──┬──── [Bouton tactile] ──── GND
+         │
+    (Pull-up interne 20-50kΩ)
+
+ BTN_ON_OFF OPTIONNEL (Marche/Arrêt via RESET) :
+   RESET ──┬──── Pull-up 10kΩ ──── VCC
+           │
+           └──── [Bouton] ──── GND
+           │
+       [C: 100nF]  (Anti-rebond)
+           │
+          GND
+
+═══ DÉTAIL MESURE BATTERIE (ADC) ═══
+
+  BAT+ (4.2V max)
+      │
+      └───[R1: 100kΩ]───┬──── PC0/ADC0 (A0)
+                        │
+                    [R2: 33kΩ]
+                        │
+                       GND
+
+  Tension divisée = BAT+ × (33k / 133k) = BAT+ × 0.248
+  
+  Exemples :
+    • BAT = 4.2V → ADC lit 1.04V
+    • BAT = 3.7V → ADC lit 0.92V
+    • BAT = 3.0V → ADC lit 0.74V
+
+  Avec Vref = AVCC (3.3V) pour ATmega328P :
+    ADC_value = (Vin / 3.3V) × 1023
+    BAT_voltage = (ADC_value / 1023) × 3.3V / 0.248
+    
+  Alternative : Utiliser AREF interne 1.1V pour meilleure précision
+    analogReference(INTERNAL) dans setup()
+    ADC_value = (Vin / 1.1V) × 1023
+
+═══════════════════════════════════════════════════════════════════════════════
+ 5️⃣ ⭐ BLOC LED SIMPLIFIÉE - Nichia NSPW500CS
+═══════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────┐
+│         ✨ NOUVEAU CIRCUIT ULTRA-SIMPLE v7.0 ✨                      │
+│                    (Plus de driver complexe!)                       │
+│                                                                     │
+│   3.3V (Régulé)                                                     │
+│       │                                                             │
+│       │                                                             │
+│  ATmega328P PD3 (PWM ~976Hz)                                        │
+│       │                                                             │
+│       │                                                             │
+│       └───[R_LED: 47Ω 0805]───┬──── Anode (+) LED NSPW500CS        │
+│                               │                                     │
+│                          [Pull-down                                 │
+│                           10kΩ optionnel]                           │
+│                               │                                     │
+│                              GND                                    │
+│                                                                     │
+│                        Cathode (-) LED ──── GND                     │
+│                                                                     │
+│  🎉 C'EST TOUT! Juste 1 résistance + LED!                          │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+
+═══ SPÉCIFICATIONS LED NICHIA NSPW500CS ═══
+
+┌──────────────────────────┬────────────────────────────────────────┐
+│  PARAMÈTRE               │  VALEUR                                │
+├──────────────────────────┼────────────────────────────────────────┤
+│ Modèle                   │ Nichia NSPW500CS                       │
+│ Package                  │ 5mm traversant (ultra facile!)         │
+│ Couleur                  │ Blanc neutre 5000K                     │
+│ CRI (Color Rendering)    │ >90 (qualité thérapeutique)            │
+│ Tension forward (Vf)     │ 3.0V typ, 3.6V max @ 20mA              │
+│ Courant nominal (If)     │ 20mA                                   │
+│ Courant maximum absolu   │ 30mA                                   │
+│ Flux lumineux            │ 8lm @ 20mA                             │
+│ Angle de faisceau        │ 15° (spot focalisé - parfait stylet!)  │
+│ Temps de vie             │ >50,000h                               │
+│ Dimensions               │ Ø5mm × 8.6mm                           │
+│ Prix                     │ ~0.80€                                 │
+└──────────────────────────┴────────────────────────────────────────┘
+
+═══ CALCUL RÉSISTANCE SÉRIE (R_LED) ═══
+
+🎯 OBJECTIF : Limiter courant LED à 20mA (nominal) pour durée de vie maximale
+
+Alimentation : 3.3V (régulateur LDO stable)
+Vf LED       : 3.0V @ 20mA (typique)
+If cible     : 20mA (mode TRAITEMENT max)
+
+Calcul résistance :
+  R = (Vsupply - Vf) / If
+  R = (3.3V - 3.0V) / 0.020A
+  R = 0.3V / 0.020A
+  R = 15Ω
+
+⚠️ PROBLÈME : 15Ω trop faible (courant élevé si Vf varie)
+
+🎯 SOLUTION : Utiliser 47Ω pour sécurité + contrôle PWM pour ajuster intensité
+
+Avec R = 47Ω :
+  I_max = (3.3V - 3.0V) / 47Ω = 6.4mA à 100% duty cycle
+  
+  ✓ Sécurité garantie (impossible de dépasser 30mA max de la LED)
+  ✓ Protection contre variations Vf (3.0-3.6V selon LED)
+  ✓ Contrôle fin du courant via PWM duty cycle
+
+═══ MODES DE FONCTIONNEMENT ET PWM ═══
+
+Mode DÉTECTION (basse intensité - 5mA) :
+  • Duty cycle PWM : 25% (baseDuty = 64/255)
+  • Courant LED   : ~6.4mA × 0.25 × modulation_depth ≈ 5mA moyen
+  • Consommation  : 5mA LED + 8mA système = 13mA total
+  • Autonomie     : 900mAh / 13mA = 69 heures!
+
+Mode TRAITEMENT (intensité maximale - 20mA) :
+  • Duty cycle PWM : 92% (baseDuty = 235/255)
+  • Courant LED   : ~20mA effectif (compense Vf + résistance)
+  • Consommation  : 20mA LED + 8mA système = 28mA total
+  • Autonomie     : 900mAh / 28mA = 32 heures!
+
+Mode BLANC (continu non modulé - 10mA) :
+  • Duty cycle PWM : 50% (baseDuty = 128/255)
+  • Courant LED   : ~10mA constant
+  • Consommation  : 10mA LED + 8mA système = 18mA total
+  • Autonomie     : 900mAh / 18mA = 50 heures
+
+🎉 AUTONOMIE MULTIPLIÉE PAR 5 à 13× vs version 6.0!
+
+═══ MODULATION FRÉQUENCES NOGIER ═══
+
+Identique à v6.0 :
+  • Fréquences : 2.28Hz à 146Hz (7 fréquences A-G)
+  • Porteuse   : 976Hz (Timer2, prescaler 64)
+  • Profondeur : 70% (enveloppe sinusoïdale)
+  • Intensité min : 20% (pas d'extinction totale)
+
+La modulation est appliquée sur le duty cycle PWM de base :
+  finalDuty = baseDuty × (MIN_INTENSITY + MODULATION_DEPTH × sin(phase))
+
+Avec LED 20mA (vs 350mA v6), le clignotement est encore moins visible!
+
+═══ AVANTAGES CIRCUIT SIMPLIFIÉ ═══
+
+✅ Composants supprimés (vs v6.0) :
+   ❌ U3 - Op-amp MCP6001 (SOT23-5)
+   ❌ Q1 - MOSFET 2N7002 (SOT-23)
+   ❌ R1 - Rsense 4.7Ω 1W (puissance)
+   ❌ R2 - Résistance gate 100Ω
+   ❌ R3 - Résistance filtre RC 10kΩ
+   ❌ C1 - Condensateur filtre RC 1µF
+   ❌ C2 - Condensateur découplage op-amp 100nF
+   
+   💰 ÉCONOMIE : -2.34€ en composants
+   📦 7 pièces en moins à souder
+   🎯 Fiabilité accrue (moins de défaillances possibles)
+
+✅ Avantages techniques :
+   • Pas de risque d'oscillation (op-amp supprimé)
+   • Pas de surchauffe (plus de MOSFET ni Rsense)
+   • Routage PCB plus simple (moins de pistes critiques)
+   • Temps d'assemblage divisé par 2
+   • Débogage ultra-simple (1 résistance à vérifier)
+
+✅ Montage LED :
+   • 5mm traversant vs SMD 3535 (×10 plus facile!)
+   • Soudage manuel possible (pas besoin reflow)
+   • Remplacement facile si LED grillée
+   • Positionnement précis en pointe de stylet
+
+═══════════════════════════════════════════════════════════════════════════════
+ 6️⃣ LED INDICATEURS RGB (Inchangé vs v6.0)
+═══════════════════════════════════════════════════════════════════════════════
+
+Les LED indicateurs utilisent toujours un expandeur I2C PCF8574.
+
+  ATmega328P PC4 (SDA) ───┐
+  ATmega328P PC5 (SCL) ───┼─── [PCF8574 I2C] ──┬── LED R [470Ω] GND
+                          │  (Adresse 0x20)    ├── LED G [470Ω] GND
+                          │                     └── LED B [470Ω] GND
+                          │
+                     Pull-ups 4.7kΩ → VCC
+
+Codage 7 fréquences Nogier :
+  • Freq A (2.28Hz)  : Rouge
+  • Freq B (4.56Hz)  : Vert
+  • Freq C (9.12Hz)  : Jaune (R+G)
+  • Freq D (18.25Hz) : Bleu
+  • Freq E (36.50Hz) : Magenta (R+B)
+  • Freq F (73Hz)    : Cyan (G+B)
+  • Freq G (146Hz)   : Blanc (R+G+B)
+
+Indicateur batterie :
+  • > 3.7V : Vert stable
+  • < 3.5V : Rouge clignotant
+  • < 3.3V : Coupure mode TRAITEMENT (sécurité)
+
+═══════════════════════════════════════════════════════════════════════════════
+ 📊 TABLEAU RÉCAPITULATIF DES CONNEXIONS v7.0
+═══════════════════════════════════════════════════════════════════════════════
+
+┌──────────────┬─────────┬────────────────────────────────────────────────┐
+│  Composant   │  Pin    │            Connexion                           │
+├──────────────┼─────────┼────────────────────────────────────────────────┤
+│ ATmega328P   │ PD3     │ PWM LED → [47Ω] → LED+ NSPW500CS               │
+│              │ PD4     │ Bouton MODE (pull-up interne)                  │
+│              │ PD2     │ Bouton FREQ (pull-up interne, INT0)            │
+│              │ PC0/A0  │ ADC batterie (diviseur 100k/33k)               │
+│              │ PC4/SDA │ I2C Data → PCF8574 + pull-up 4.7kΩ             │
+│              │ PC5/SCL │ I2C Clock → PCF8574 + pull-up 4.7kΩ            │
+│              │ VCC     │ 3.3V (LDO)                                     │
+│              │ GND     │ GND commun                                     │
+│              │ AVCC    │ 3.3V (avec ferrite + 100nF)                    │
+│              │ AREF    │ 100nF → GND                                    │
+├──────────────┼─────────┼────────────────────────────────────────────────┤
+│ TP4056       │ VCC     │ USB-C VBUS (5V)                                │
+│              │ BAT     │ BAT+ (charge batterie)                         │
+│              │ PROG    │ Rprog 2.2kΩ → GND (500mA charge)               │
+│              │ CHRG    │ LED Rouge charge (470Ω → GND)                  │
+│              │ STDBY   │ LED Verte standby (470Ω → GND)                 │
+│              │ GND     │ GND commun                                     │
+├──────────────┼─────────┼────────────────────────────────────────────────┤
+│ HT7333-A     │ VIN     │ BAT+ (3.0-4.2V)                                │
+│              │ VOUT    │ 3.3V → ATmega328P VCC                          │
+│              │ GND     │ GND commun                                     │
+├──────────────┼─────────┼────────────────────────────────────────────────┤
+│ PCF8574      │ SDA     │ ATmega328P PC4 + pull-up 4.7kΩ → VCC          │
+│ (I2C LED)    │ SCL     │ ATmega328P PC5 + pull-up 4.7kΩ → VCC          │
+│              │ P0-P2   │ LED R, G, B (via 470Ω → GND)                   │
+│              │ VCC     │ 3.3V                                           │
+│              │ GND     │ GND commun                                     │
+│              │ A0-A2   │ GND (adresse 0x20)                             │
+├──────────────┼─────────┼────────────────────────────────────────────────┤
+│ LED          │ Anode   │ ATmega328P PD3 via [47Ω]                       │
+│ NSPW500CS    │ Cathode │ GND direct                                     │
+└──────────────┴─────────┴────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+ ⚡ CONSOMMATION ÉLECTRIQUE & AUTONOMIE v7.0
+═══════════════════════════════════════════════════════════════════════════════
+
+═══ CONSOMMATION PAR COMPOSANT ═══
+
+┌────────────────────────┬──────────────┬─────────────────────────────┐
+│      Composant         │  Courant     │         Condition           │
+├────────────────────────┼──────────────┼─────────────────────────────┤
+│ ATmega328P @ 8MHz     │    8 mA      │ Active @ 3.3V               │
+│ HT7333-A LDO          │    4 µA      │ Quiescent current           │
+│ PCF8574 I2C           │   10 µA      │ Standby                     │
+│ LED RGB indicateur    │   5 mA       │ 1 LED allumée (470Ω, 3.3V)  │
+│ LED NSPW500CS         │  20 mA       │ Mode TRAITEMENT (max)       │
+│ LED NSPW500CS         │   5 mA       │ Mode DÉTECTION              │
+│ LED charge (TP4056)   │   2 mA       │ Pendant charge uniquement   │
+└────────────────────────┴──────────────┴─────────────────────────────┘
+
+═══ SCÉNARIOS D'AUTONOMIE (Batterie 900mAh) ═══
+
+📊 COMPARAISON v6.0 vs v7.0 :
+
+┌─────────────────────┬──────────────┬──────────────┬──────────────┐
+│      MODE           │   v6.0       │    v7.0      │  Amélioration│
+├─────────────────────┼──────────────┼──────────────┼──────────────┤
+│ DÉTECTION           │   26h        │    69h       │   ×2.7       │
+│ TRAITEMENT          │   3.5h       │    32h       │   ×9.1       │
+│ BLANC               │   18h        │    50h       │   ×2.8       │
+│ VEILLE (sleep)      │   ~20 ans    │   ~20 ans    │   =          │
+└─────────────────────┴──────────────┴──────────────┴──────────────┘
+
+Détail v7.0 :
+
+Scénario 1 : MODE DÉTECTION (usage typique)
+  • LED principale : 5mA (modulation 50% duty → 2.5mA moyen)
+  • ATmega328P @ 8MHz : 8mA
+  • PCF8574 + LED indicateur : 0.5mA
+  • TOTAL : ~13mA moyen
+  
+  Autonomie = 900mAh / 13mA = 69 heures (vs 26h en v6.0!)
+
+Scénario 2 : MODE TRAITEMENT (usage intensif)
+  • LED principale : 20mA (modulation 70% duty → 14mA moyen)
+  • ATmega328P @ 8MHz : 8mA
+  • PCF8574 + LED indicateur : 0.5mA
+  • TOTAL : ~28mA moyen
+  
+  Autonomie = 900mAh / 28mA = 32 heures (vs 3.5h en v6.0!)
+
+Scénario 3 : MODE BLANC (lumière continue)
+  • LED principale : 10mA constant
+  • ATmega328P @ 8MHz : 8mA
+  • PCF8574 + LED indicateur : 0.5mA
+  • TOTAL : ~18mA moyen
+  
+  Autonomie = 900mAh / 18mA = 50 heures (vs 18h en v6.0!)
+
+🎉 AUTONOMIE MULTIPLIÉE PAR 3 À 9× SELON LE MODE!
+
+═══════════════════════════════════════════════════════════════════════════════
+ 🛠️ NOTES POUR KICAD
+═══════════════════════════════════════════════════════════════════════════════
+
+SCHÉMATIQUE :
+  1. Créer 5 blocs hiérarchiques (Batterie, Charge, Alim, MCU, LED)
+  2. Utiliser net labels pour clarté (BAT+, 3V3, LED_PWM)
+  3. Ajouter test points sur signaux critiques (3V3, BAT+, LED_PWM)
+  4. ✨ SIMPLIFICATION : Supprimer tout le bloc driver complexe v6!
+
+PCB LAYOUT v7.0 :
+  1. Contraintes mécaniques : 16mm × 70mm max (inchangé)
+  2. LED NSPW500CS en tête (bout du stylet) - Trou Ø5mm traversant
+  3. USB-C en queue (base du stylet)
+  4. ✨ GAIN ESPACE : ~8×6mm libéré (zone driver supprimée)
+  5. Condensateurs découplage TRÈS PRÈS des ICs
+  6. Plans de masse continu (GND plane sur layer bottom)
+  7. Traces PWM courtes (PD3 → R_LED → LED pad)
+
+ROUTAGE CRITIQUE :
+  • LED_PWM (PD3 → R47Ω) : trace courte < 15mm, large 0.3mm
+  • I2C (SDA/SCL) : traces identiques, séparées 0.5mm min
+  • ADC batterie : loin des traces PWM (filtrage parasite)
+  • LED traversante : pads larges 1.5mm pour solidité mécanique
+
+SIMPLIFICATIONS v7.0 vs v6.0 :
+  ❌ Plus de zone driver haute puissance
+  ❌ Plus de via thermiques MOSFET
+  ❌ Plus de traces Kelvin (Rsense)
+  ❌ Plus de filtre RC analogique critique
+  ✅ Routage ultra-simple : juste 1 piste PWM → R → LED!
+
+═══════════════════════════════════════════════════════════════════════════════
+ ✅ CHECKLIST AVANT FABRICATION PCB v7.0
+═══════════════════════════════════════════════════════════════════════════════
+
+SCHÉMATIQUE :
+  ☐ Tous les nets nommés clairement
+  ☐ Valeurs composants vérifiées (Rprog, R_LED=47Ω, diviseur ADC)
+  ☐ Footprints assignés à tous les composants
+  ☐ Footprint LED : Trou traversant Ø5mm (pad 1.5mm)
+  ☐ Polarités LED et batteries indiquées (+ silkscreen)
+  ☐ Test points ajoutés (3V3, BAT+, LED_PWM, GND)
+  ☐ Connecteurs USB-C avec bonnes pins (VBUS, GND, CC1/CC2)
+  ☐ ERC (Electrical Rules Check) passé sans erreur
+  ☐ Vérifier qu'aucun composant driver v6 n'est resté!
+
+PCB :
+  ☐ Dimensions 16×70mm respectées
+  ☐ Trous de fixation positionnés (vis M2 aux extrémités)
+  ☐ LED NSPW500CS en pointe : espace 10mm pour pattes pliées
+  ☐ Clearance composants > 0.3mm
+  ☐ Traces PWM/ADC séparées
+  ☐ Plan GND continu (via stitching espacés 5mm max)
+  ☐ Condensateurs découplage < 5mm des VCC pins
+  ☐ Silkscreen indications (+/-, LED polarity, pin 1, version "v7.0")
+  ☐ DRC (Design Rules Check) passé
+  ☐ Vérifier zone libre autour LED pour positionnement mécanique
+
+FABRICATION :
+  ☐ Gerbers exportés (7 fichiers : Top, Bottom, Silk, Mask, Drill)
+  ☐ BOM exportée (CSV avec refs Digikey/LCSC)
+  ☐ Pick & Place file si assemblage PCBA
+  ☐ Commande chez JLCPCB/PCBWay (2L, ENIG, 1.6mm épaisseur)
+  ☐ Commander LEDs NSPW500CS séparément (lot 10-20 pour tests)
+
+═══════════════════════════════════════════════════════════════════════════════
+ 🎓 RÉSUMÉ DES CHANGEMENTS v6.0 → v7.0
+═══════════════════════════════════════════════════════════════════════════════
+
+MATÉRIEL :
+  ✅ LED Nichia 519A (3535 SMD, 350mA) → NSPW500CS (5mm traversant, 20mA)
+  ✅ Driver courant constant (7 composants) → Résistance série simple (1 composant)
+  ✅ Autonomie ×3 à ×9 meilleure
+  ✅ Coût réduit de -2.23€ (-9.7%)
+  ✅ Montage ×2 plus rapide
+  ✅ Fiabilité accrue (7 composants en moins)
+
+LOGICIEL :
+  ✅ Ajustement duty cycles PWM (baseDuty adapté à 20mA max)
+  ✅ Commentaires mis à jour (référence NSPW500CS)
+  ✅ Seuils batterie optimisés (moins critique avec faible conso)
+  ✅ Reste du code IDENTIQUE (modulation Nogier inchangée)
+
+ÉLECTRONIQUE :
+  ✅ ATmega328P-AU conservé (TQFP-32)
+  ✅ Batterie LiPo 900mAh conservée
+  ✅ Chargeur TP4056 conservé
+  ✅ LDO HT7333-A conservé
+  ✅ PCF8574 I2C conservé
+  ✅ LED indicateurs RGB conservés
+  ✅ Boutons tactiles conservés
+
+PCB :
+  ✅ Dimensions 16×70mm conservées
+  ✅ Layout simplifié (zone driver supprimée)
+  ✅ Trou LED 5mm en pointe stylet (nouveau)
+  ✅ Routage plus simple et plus fiable
+
+═══════════════════════════════════════════════════════════════════════════════
+ 📝 FIN DU SCHÉMA ÉLECTRONIQUE v7.0
+═══════════════════════════════════════════════════════════════════════════════

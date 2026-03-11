@@ -1,0 +1,241 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                   MIGRATION ATtiny85 → ATmega328P-AU                          ║
+║                     Stylet d'Auriculothérapie v6.0                            ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+═══════════════════════════════════════════════════════════════════════════════
+ 📋 RÉSUMÉ DE LA MIGRATION
+═══════════════════════════════════════════════════════════════════════════════
+
+Cette migration remplace l'ATtiny85-20SU (SOIC-8) par l'ATmega328P-AU (TQFP-32)
+pour offrir plus de capacités d'évolution au projet.
+
+═══════════════════════════════════════════════════════════════════════════════
+ ✅ AVANTAGES DE LA MIGRATION
+═══════════════════════════════════════════════════════════════════════════════
+
+┌────────────────────────────────┬────────────────┬────────────────┐
+│        Caractéristique         │   ATtiny85     │ ATmega328P-AU  │
+├────────────────────────────────┼────────────────┼────────────────┤
+│ Pins GPIO disponibles          │      5         │      23        │
+│ Sorties PWM matérielles        │      2         │       6        │
+│ Flash mémoire programme        │     8 KB       │     32 KB      │
+│ RAM                            │    512 B       │     2 KB       │
+│ EEPROM                         │    512 B       │     1 KB       │
+│ Canaux ADC                     │      4         │       8        │
+│ Timer 16-bit                   │      0         │       1        │
+│ UART matériel                  │     Non        │      Oui       │
+│ Compatibilité Arduino native   │     Non        │      Oui       │
+│ Package                        │   SOIC-8       │   TQFP-32      │
+│ Prix unitaire (Digikey)        │    1.50€       │    2.50€       │
+│ Consommation @ 8MHz, 3.3V      │    4 mA        │    8 mA        │
+└────────────────────────────────┴────────────────┴────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+ 🔄 CHANGEMENTS PRINCIPAUX
+═══════════════════════════════════════════════════════════════════════════════
+
+1. MICROCONTRÔLEUR
+   - ATtiny85-20SU (SOIC-8) → ATmega328P-AU (TQFP-32)
+   - Package plus grand mais plus de pins disponibles
+   - Bootloader Arduino optionnel pour programmation USB
+
+2. MAPPING DES PINS
+
+   Fonction                  ATtiny85        →    ATmega328P-AU
+   ─────────────────────────────────────────────────────────────
+   PWM LED principale        PB1 (pin 6)     →    PD3 (pin 1, D3)
+   Bouton FREQ               PB2 (pin 7)     →    PD2 (pin 32, D2)
+   Bouton MODE               PB3 (pin 2)     →    PD4 (pin 2, D4)
+   I2C SDA                   PB0 (pin 5)     →    PC4 (pin 27, A4)
+   I2C SCL                   PB3 (pin 2)     →    PC5 (pin 28, A5)
+   ADC Batterie              PB4 (pin 3)     →    PC0 (pin 23, A0)
+   
+3. TIMER PWM
+   - ATtiny85 : Timer1 (8-bit) ~31kHz PWM
+   - ATmega328P : Timer2 (8-bit) ~976Hz PWM sur OC2B (D3)
+   - Option Timer1 (16-bit) pour PWM ultra-précis 1kHz exact
+
+4. LIBRAIRIES
+   - TinyWireM.h → Wire.h (I2C standard Arduino)
+   - Support natif Serial pour debug via UART
+
+5. CONSOMMATION
+   - Augmentation : 4mA → 8mA @ 8MHz
+   - Impact autonomie : 30h → 26h (mode détection)
+   - Trade-off acceptable pour les fonctionnalités supplémentaires
+
+═══════════════════════════════════════════════════════════════════════════════
+ 📁 FICHIERS MODIFIÉS
+═══════════════════════════════════════════════════════════════════════════════
+
+NOUVEAUX FICHIERS (v6.0) :
+  ✓ stylet_auriculo_ATmega328P_v6_FINAL.ino
+  ✓ schema_electronique_ATmega328P_v6_FINAL.txt
+  ✓ BOM_complete_v6_FINAL.txt
+  ✓ MIGRATION_ATmega328P.txt (ce fichier)
+
+FICHIERS À METTRE À JOUR (manuellement si nécessaire) :
+  ⚠ bom_pcb_v6_FINAL.txt
+  ⚠ guide_pcb_layout_16x70mm_v6_FINAL.txt
+  ⚠ README_v6_FINAL.txt
+  ⚠ RESUME_EXECUTIF_v6.txt
+  ⚠ guide_test_breadboard_v6_FINAL.txt
+
+FICHIERS OBSOLÈTES (v5.0 avec ATtiny85) :
+  • stylet_auriculo_ATtiny85_v5_FINAL.ino
+  • schema_electronique_attiny85_v5_FINAL.txt
+  • BOM_complete_v5_FINAL.txt
+  → Ces fichiers sont conservés pour référence
+
+═══════════════════════════════════════════════════════════════════════════════
+ 🎯 PROCHAINES ÉTAPES
+═══════════════════════════════════════════════════════════════════════════════
+
+DÉVELOPPEMENT :
+  1. Compiler stylet_auriculo_ATmega328P_v6_FINAL.ino sur Arduino IDE
+  2. Tester sur breadboard avec Arduino Uno (même MCU)
+  3. Valider fonctionnement I2C, PWM, ADC, boutons
+  4. Optimiser consommation si nécessaire (sleep modes)
+
+PCB :
+  1. Mettre à jour schématique KiCad avec ATmega328P-AU (TQFP-32)
+  2. Adapter footprint et routage (plus de pins)
+  3. Vérifier dimensions PCB (TQFP-32 plus grand que SOIC-8)
+  4. Ajouter header ISP pour programmation (optionnel)
+  5. Commander prototypes
+
+PROGRAMMATION :
+  Options :
+    A) Via USB-UART + bootloader Arduino (plus simple)
+    B) Via ISP (USBasp, Arduino as ISP) sans bootloader
+    C) Via programmateur AVRISP mkII
+
+EXTENSIONS FUTURES (pins libres) :
+  • Écran OLED I2C (128x32 ou 128x64)
+  • Encodeur rotatif pour sélection fréquence
+  • Capteur température (LM35, DS18B20)
+  • Buzzer feedback sonore
+  • Boutons supplémentaires (presets)
+  • Communication Bluetooth (HC-05/HC-06)
+
+═══════════════════════════════════════════════════════════════════════════════
+ ⚠️ POINTS D'ATTENTION
+═══════════════════════════════════════════════════════════════════════════════
+
+1. DIMENSIONS PCB
+   Le TQFP-32 (7×7mm) est plus grand que le SOIC-8 (5×4mm).
+   Vérifier que le layout 16×70mm peut accueillir le nouveau package.
+
+2. ROUTAGE I2C
+   Les pins I2C sont maintenant dédiées (PC4/PC5) contrairement à
+   l'ATtiny85 où PB3 était partagé avec SCL et bouton.
+
+3. CONDENSATEURS DÉCOUPLAGE
+   Ajouter condensateurs 100nF sur VCC et AVCC (pin 7 et pin 20).
+   Ferrite optionnel entre VCC et AVCC pour isolation analogique.
+
+4. CRYSTAL OPTIONNEL
+   Le ATmega328P peut fonctionner :
+     - Oscillateur interne 8MHz (comme ATtiny85)
+     - Crystal externe 16MHz (plus précis pour UART)
+   
+   Pour ce projet : 8MHz interne suffisant (économie composants).
+
+5. PROGRAMMATION ISP
+   Prévoir header 2×3 pins (MOSI, MISO, SCK, RESET, VCC, GND)
+   pour programmation si pas de bootloader.
+
+6. CONSOMMATION
+   Consommation doublée (8mA vs 4mA). Pour optimiser :
+     - Utiliser sleep modes (SLEEP_MODE_PWR_DOWN)
+     - Désactiver ADC quand non utilisé
+     - Réduire fréquence clock si possible (prescaler)
+
+═══════════════════════════════════════════════════════════════════════════════
+ 📊 COMPARAISON AUTONOMIE
+═══════════════════════════════════════════════════════════════════════════════
+
+Batterie : LiPo 900mAh 3.7V
+
+┌──────────────────────┬────────────────┬────────────────┐
+│   Mode               │  ATtiny85 (v5) │ ATmega328P (v6)│
+├──────────────────────┼────────────────┼────────────────┤
+│ Détection (50mA LED) │    30 heures   │   26 heures    │
+│ Traitement (350mA)   │   3.6 heures   │  3.5 heures    │
+│ Veille (sleep)       │   ~20 ans      │  ~20 ans       │
+└──────────────────────┴────────────────┴────────────────┘
+
+Impact : -13% autonomie en mode détection (acceptable)
+         Compensation : Optimisation code + sleep modes
+
+═══════════════════════════════════════════════════════════════════════════════
+ 💡 RECOMMANDATIONS
+═══════════════════════════════════════════════════════════════════════════════
+
+1. TESTER D'ABORD SUR ARDUINO UNO
+   Le Uno utilise l'ATmega328P (DIP-28), code identique.
+   Permet validation rapide avant fabrication PCB.
+
+2. COMMENCER SANS BOOTLOADER
+   Programmation ISP directe plus fiable pour production.
+   Bootloader optionnel pour prototypage/debug.
+
+3. PRÉVOIR ÉVOLUTIVITÉ
+   Router quelques pins PWM vers pads test pour extensions.
+   Réserver espace PCB pour composants futurs.
+
+4. DOCUMENTER PINOUT
+   Créer étiquette silkscreen claire sur PCB final.
+   Numérotation Arduino (D2, D3, A0...) + physique.
+
+═══════════════════════════════════════════════════════════════════════════════
+ 📞 SUPPORT & RÉFÉRENCES
+═══════════════════════════════════════════════════════════════════════════════
+
+DATASHEETS :
+  • ATmega328P : https://ww1.microchip.com/downloads/en/DeviceDoc/ATmega328P-DS.pdf
+  • Pinout Arduino : https://docs.arduino.cc/hardware/uno-rev3
+
+TUTORIELS :
+  • ATmega328P bare bones : https://www.arduino.cc/en/Tutorial/ArduinoToBreadboard
+  • Programmation ISP : https://docs.arduino.cc/built-in-examples/arduino-isp/ArduinoISP
+
+BOOTLOADER :
+  • Optiboot : https://github.com/Optiboot/optiboot
+
+═══════════════════════════════════════════════════════════════════════════════
+ ✨ CONCLUSION
+═══════════════════════════════════════════════════════════════════════════════
+
+La migration vers ATmega328P-AU offre une base solide pour l'évolution
+du projet stylet d'auriculothérapie. Le faible surcoût (1€) et la légère
+augmentation de consommation sont largement compensés par :
+
+  ✓ Compatibilité Arduino native (écosystème riche)
+  ✓ Nombreux exemples et support communautaire
+  ✓ Pins disponibles pour futures fonctionnalités
+  ✓ Debug facilité via UART Serial
+  ✓ Timers 16-bit pour précision accrue
+
+Le code v6.0 est fonctionnellement identique au v5.0, seuls les pins et
+librairies I2C ont été adaptés. Migration transparente pour l'utilisateur.
+
+═══════════════════════════════════════════════════════════════════════════════
+ 📅 HISTORIQUE
+═══════════════════════════════════════════════════════════════════════════════
+
+v5.0 (Février 2026) : Version ATtiny85-20SU
+  • Architecture fonctionnelle validée
+  • 7 fréquences Nogier + 3 modes
+  • Modulation 1kHz pour confort visuel
+
+v6.0 (Février 2026) : Migration ATmega328P-AU
+  • Mêmes fonctionnalités que v5.0
+  • Architecture évolutive (23 GPIO libres)
+  • Compatibilité Arduino native
+  • Base pour développements futurs
+
+═══════════════════════════════════════════════════════════════════════════════
+ 📝 FIN DU DOCUMENT
+═══════════════════════════════════════════════════════════════════════════════

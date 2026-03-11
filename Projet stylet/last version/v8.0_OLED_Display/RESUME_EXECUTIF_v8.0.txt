@@ -24,7 +24,7 @@
 │ Fréquences thérapeutiques     │ 7 fréquences Nogier (2.28-146Hz)           │
 │ ⭐ Modulation (RÉACTIVÉE!)     │ Porteuse 976Hz, profondeur 70% ON/OFF     │
 │ Modes de fonctionnement       │ Détection / Traitement / Lumière blanche   │
-│ Indicateurs                   │ 3 LEDs RGB + OLED 128×32                   │
+│ Indicateurs                   │ OLED 128×32                                │
 │ Boutons                       │ 3 (FREQ, MODE, MENU)                       │
 │ Mesure batterie               │ ADC 10-bit avec diviseur résistif          │
 │ Communication                 │ I2C (PCF8574 + OLED)                       │
@@ -105,7 +105,7 @@
 ┌─────────────────────────┬──────────────────────┬──────────────────────┐
 │      PARAMÈTRE          │   v7.0 (base)        │  v8.0 (évolution)    │
 ├─────────────────────────┼──────────────────────┼──────────────────────┤
-│ Affichage               │ 3 LEDs RGB           │ OLED 128×32 + RGB    │
+│ Affichage               │ -                    │ OLED 128×32          │
 │ Modulation fréquences   │ NON (désactivée)     │ OUI (réimplémentée)  │
 │ Timer de soin           │ NON                  │ OUI (chronomètre)    │
 │ Boutons                 │ 2 (FREQ, MODE)       │ 3 (+ MENU)           │
@@ -238,14 +238,26 @@ Batterie : LiPo 900mAh 3.7V
   • Réveil automatique lors d'appui bouton
   • Sauvegarde état modulation en EEPROM
 
+
 ═══════════════════════════════════════════════════════════════════════════════
- 💰 COÛTS v8.0
+ 💰 COÛTS & OPTIMISATION v8.0
 ═══════════════════════════════════════════════════════════════════════════════
+
+🎉 **Optimisation après suppression des LEDs d'indication (status LEDs) :**
+  • 3 LEDs SMD (Rouge, Verte, Bleue) supprimées
+  • 3 résistances 470Ω supprimées
+  • Réduction du coût BOM : -0.09€ par unité (~0.36€ sur série de 4)
+  • Simplification du routage PCB (moins de pistes, moins de points de panne)
+  • Moins de temps d'assemblage (6 soudures en moins)
+
+**I/O pins libérés sur ATmega328P :**
+  • PCF8574 P0, P1, P2 (sorties LEDs RGB) désormais inutilisés
+  • Possibilité de réutilisation pour d'autres fonctions futures (buzzer, relais, etc.)
 
 ┌────────────────────────────────────┬───────────┬──────────────┬──────────────┐
 │            Poste                   │  Unitaire │  Série (10x) │  Série (100x)│
 ├────────────────────────────────────┼───────────┼──────────────┼──────────────┤
-│ Composants électroniques v7.0      │   6.08€   │    3.50€     │    2.00€     │
+│ Composants électroniques v7.0      │   5.99€   │    3.41€     │    1.91€     │
 │ ⭐ OLED SSD1306 0.91" I2C           │   3.50€   │    2.50€     │    1.50€     │
 │ ⭐ Connecteur JST-4 pins            │   0.10€   │    0.05€     │    0.02€     │
 │ ⭐ Câble 4 fils 10cm                │   0.50€   │    0.30€     │    0.15€     │
@@ -255,7 +267,7 @@ Batterie : LiPo 900mAh 3.7V
 │ LED principale NSPW500CS           │   0.80€   │    0.60€     │    0.40€     │
 │ Mécanique (tube, embout, fibre)    │   7.00€   │    4.00€     │    3.00€     │
 ├────────────────────────────────────┼───────────┼──────────────┼──────────────┤
-│ COÛT TOTAL par unité v8.0          │  25.18€   │   15.60€     │   10.17€     │
+│ COÛT TOTAL par unité v8.0          │  25.09€   │   15.51€     │   10.08€     │
 └────────────────────────────────────┴───────────┴──────────────┴──────────────┘
 
 🎉 COMPARAISON COÛTS :
@@ -264,8 +276,8 @@ Batterie : LiPo 900mAh 3.7V
 │            Version                 │  Unitaire │  Série (10x) │  Diff. v7.0  │
 ├────────────────────────────────────┼───────────┼──────────────┼──────────────┤
 │ v7.0 (base)                        │  20.88€   │   12.60€     │     -        │
-│ v8.0 (OLED + modulation)           │  25.18€   │   15.60€     │  +4.30€      │
-│                                    │           │              │  (+20.6%)    │
+│ v8.0 (OLED + modulation, sans LEDs)│  25.09€   │   15.51€     │  +4.21€      │
+│                                    │           │              │  (+20.2%)    │
 └────────────────────────────────────┴───────────┴──────────────┴──────────────┘
 
 ═══════════════════════════════════════════════════════════════════════════════

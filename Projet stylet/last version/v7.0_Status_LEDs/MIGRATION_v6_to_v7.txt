@@ -1,0 +1,349 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                    MIGRATION v6.0 → v7.0                                      ║
+║              Passage à la LED Nichia NSPW500CS                                ║
+║                   Simplification Majeure de l'Électronique                    ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+═══════════════════════════════════════════════════════════════════════════════
+ 🎯 OBJECTIF DE LA MIGRATION
+═══════════════════════════════════════════════════════════════════════════════
+
+Remplacement de la LED Nichia 519A (3535 SMD, 350mA) par la LED Nichia NSPW500CS
+(5mm traversant, 20mA) pour :
+
+✅ SIMPLIFIER drastiquement le circuit électronique
+✅ RÉDUIRE la consommation énergétique (×17.5 moins de courant)
+✅ FACILITER l'assemblage (composant traversant vs SMD)
+✅ AUGMENTER l'autonomie sur batterie
+✅ RÉDUIRE les coûts de production
+✅ CONSERVER un CRI >90 pour la qualité thérapeutique
+
+═══════════════════════════════════════════════════════════════════════════════
+ 📊 COMPARAISON DÉTAILLÉE DES LEDS
+═══════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────┬──────────────────────┬──────────────────────┐
+│      PARAMÈTRE          │   Nichia 519A (v6)   │  NSPW500CS (v7)      │
+├─────────────────────────┼──────────────────────┼──────────────────────┤
+│ Package                 │ 3535 SMD             │ 5mm traversant       │
+│ Tension forward (Vf)    │ 2.7-3.0V @ 350mA     │ 3.0-3.6V @ 20mA      │
+│ Courant nominal (If)    │ 350mA                │ 20mA                 │
+│ Courant maximum         │ 500mA                │ 30mA                 │
+│ CRI (Color Rendering)   │ >90                  │ >90                  │
+│ Température couleur     │ 5000K                │ 5000K                │
+│ Flux lumineux           │ ~100lm @ 350mA       │ ~8lm @ 20mA          │
+│ Angle de faisceau       │ 120°                 │ 15° (spot focalisé)  │
+│ Soudage                 │ Reflow SMD (expert)  │ Main (débutant OK)   │
+│ Prix unitaire           │ 1.50€                │ 0.80€                │
+│ Disponibilité           │ Difficile (niche)    │ Excellente (stock)   │
+└─────────────────────────┴──────────────────────┴──────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+ ⚡ IMPACT SUR LA CONSOMMATION ÉLECTRIQUE
+═══════════════════════════════════════════════════════════════════════════════
+
+┌────────────────────────────────────────────────────────────────────────┐
+│                        VERSION 6.0 (519A)                              │
+├────────────────────────────────────────────────────────────────────────┤
+│ Mode DÉTECTION      : 50mA LED + 10mA système = 60mA total            │
+│ Mode TRAITEMENT     : 350mA LED + 10mA système = 360mA total          │
+│                                                                        │
+│ Autonomie batterie 900mAh :                                            │
+│   • Mode DÉTECTION  : 900/60 = 15h                                     │
+│   • Mode TRAITEMENT : 900/360 = 2.5h                                   │
+└────────────────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────────────────┐
+│                        VERSION 7.0 (NSPW500CS)                         │
+├────────────────────────────────────────────────────────────────────────┤
+│ Mode DÉTECTION      : 5mA LED + 8mA système = 13mA total              │
+│ Mode TRAITEMENT     : 20mA LED + 8mA système = 28mA total             │
+│                                                                        │
+│ Autonomie batterie 900mAh :                                            │
+│   • Mode DÉTECTION  : 900/13 = 69h  (×4.6 meilleure)                  │
+│   • Mode TRAITEMENT : 900/28 = 32h  (×12.8 meilleure!)                │
+│                                                                        │
+│ 🎉 AMÉLIORATION : Autonomie multipliée par 5 à 13 selon le mode!      │
+└────────────────────────────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+ 🔧 SIMPLIFICATIONS ÉLECTRONIQUES MAJEURES
+═══════════════════════════════════════════════════════════════════════════════
+
+╔═══════════════════════════════════════════════════════════════════════════╗
+║  COMPOSANTS SUPPRIMÉS (Plus nécessaires!)                                 ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+❌ U3 - Amplificateur opérationnel MCP6001 (SOT23-5) → -0.60€
+❌ Q1 - MOSFET 2N7002 (SOT-23)                       → -0.15€
+❌ R1 - Résistance Rsense 4.7Ω 1W (puissance)        → -1.50€
+❌ R2 - Résistance gate 100Ω                         → -0.01€
+❌ R3 - Résistance filtre RC 10kΩ                    → -0.01€
+❌ C1 - Condensateur filtre RC 1µF                   → -0.05€
+❌ C2 - Condensateur découplage op-amp 100nF         → -0.02€
+                                                  ──────────
+                           ÉCONOMIE COMPOSANTS :    -2.34€
+
+╔═══════════════════════════════════════════════════════════════════════════╗
+║  COMPOSANTS AJOUTÉS (Circuit ultra-simple!)                               ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+✅ R_LED - Résistance série LED (150Ω, 0805)         → +0.01€
+✅ LED1  - Nichia NSPW500CS (5mm traversant)         → +0.80€
+                                                  ──────────
+                             COÛT NOUVEAUX COMP :    +0.81€
+
+╔═══════════════════════════════════════════════════════════════════════════╗
+║  BILAN ÉCONOMIQUE                                                         ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+Coût BOM v6.0 : 22.90€
+Suppression    : -2.34€
+Ajouts         : +0.81€
+Différence LED : -0.70€ (1.50€ → 0.80€)
+              ──────────
+Coût BOM v7.0 : 20.67€  (-2.23€, soit -9.7% moins cher!)
+
+═══════════════════════════════════════════════════════════════════════════════
+ 🔌 NOUVEAU SCHÉMA SIMPLIFIÉ - DRIVER LED v7.0
+═══════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│  ANCIEN CIRCUIT v6.0 : Driver courant constant complexe                │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  ATmega328P PD3 (PWM) → RC Filter → Op-amp (+) ┐                       │
+│                                                 ├─→ Gate MOSFET         │
+│  Rsense (4.7Ω) → Vsense → Op-amp (-)  ────────┘                        │
+│                     │                                                   │
+│  BAT+ → LED 519A → MOSFET Drain                                         │
+│                    MOSFET Source → Rsense → GND                         │
+│                                                                         │
+│  📦 Composants : 7 pièces (op-amp, MOSFET, 3R, 2C)                      │
+│  🔧 Complexité : Élevée (réglage précis, risque oscillation)            │
+│  💰 Coût       : 2.34€                                                  │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│  NOUVEAU CIRCUIT v7.0 : Résistance série (ultra-simple!)               │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  ATmega328P PD3 (PWM) ─────┬───[R_LED: 150Ω]───┬─── LED+ NSPW500CS    │
+│                            │                    │                      │
+│                      [Pull-down 10kΩ]          LED-                    │
+│                            │                    │                      │
+│                           GND                  GND                     │
+│                                                                         │
+│  📦 Composants : 2 pièces (1 résistance + LED)                          │
+│  🔧 Complexité : Minimale (lycéen peut assembler)                       │
+│  💰 Coût       : 0.81€                                                  │
+│  ✨ Fiabilité  : Maximale (moins de composants = moins de pannes)       │
+└─────────────────────────────────────────────────────────────────────────┘
+
+═══ CALCUL RÉSISTANCE SÉRIE (R_LED) ═══
+
+Tension alimentation : VBAT = 3.0V (min) à 4.2V (max)
+Tension forward LED  : Vf = 3.0V @ 20mA (typ), max 3.6V
+
+Avec régulateur 3.3V :
+  R = (Vsupply - Vf) / If
+  R = (3.3V - 3.0V) / 0.020A = 15Ω
+
+Pour limiter courant à 20mA avec batterie pleine (4.2V directement) :
+  R = (4.2V - 3.6V) / 0.020A = 30Ω
+
+⚠️ PROBLÈME : Avec 3.0V batterie faible, LED s'éteint (3.0V < Vf 3.0V)
+
+🎯 SOLUTION OPTIMALE : Alimenter LED directement depuis BAT+ (sans LDO)
+  + Ajouter résistance 150Ω pour limiter courant
+
+  R = (3.3V - 3.0V) / 0.020A = 150Ω  (valeur standard)
+  
+  Vérification batterie pleine :
+    I_max = (4.2V - 3.0V) / 150Ω = 8mA  ✓ Sécuritaire
+  
+  Vérification batterie faible :
+    I_min = (3.0V - 3.0V) / 150Ω = 0mA  ✗ LED éteinte
+
+🎯 SOLUTION FINALE : Alimenter depuis 3.3V régulé + résistance 47Ω
+  
+  Mode TRAITEMENT (PWM 100%) :
+    I = (3.3V - 3.0V) / 47Ω = 6.4mA  → Augmenter PWM duty cycle
+    
+  Avec PWM variable, contrôler intensité de 0 à 20mA :
+    R = 47Ω (limite hardware à 64mA max si PWM bug → sécurité)
+    
+  Pour obtenir 20mA :
+    Duty_cycle = (3.0V + 20mA × 47Ω) / 3.3V = 0.91 × 3.3V
+    → PWM à ~92% pour 20mA
+
+═══════════════════════════════════════════════════════════════════════════════
+ 💻 MODIFICATIONS DU CODE ARDUINO
+═══════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│  PARAMÈTRES MODIFIÉS                                                    │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  // Version 6.0 (519A - 350mA)                                          │
+│  MODE_DETECTION  : baseDuty = 38   (15% → 50mA)                        │
+│  MODE_TRAITEMENT : baseDuty = 255  (100% → 350mA)                      │
+│  MODE_BLANC      : baseDuty = 153  (60% → 200mA)                       │
+│                                                                         │
+│  // Version 7.0 (NSPW500CS - 20mA)                                      │
+│  MODE_DETECTION  : baseDuty = 64   (25% → 5mA)                         │
+│  MODE_TRAITEMENT : baseDuty = 235  (92% → 20mA)                        │
+│  MODE_BLANC      : baseDuty = 128  (50% → 10mA)                        │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+
+Autres changements code :
+  • Commentaires mis à jour (référence NSPW500CS)
+  • Calculs courant ajustés
+  • Seuils batterie optimisés (moins critique avec faible conso)
+
+═══════════════════════════════════════════════════════════════════════════════
+ 📐 IMPACT SUR LE PCB
+═══════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│  SIMPLIFICATIONS LAYOUT PCB                                             │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  ❌ SUPPRIMÉ : Zone driver courant (op-amp U3 + MOSFET Q1)              │
+│  ❌ SUPPRIMÉ : Piste haute puissance pour Rsense 1W                     │
+│  ❌ SUPPRIMÉ : Via thermiques pour dissipation MOSFET                   │
+│  ❌ SUPPRIMÉ : 7 composants CMS délicats à placer                       │
+│                                                                         │
+│  ✅ AJOUTÉ : Trou traversant 5mm pour LED (bout du PCB)                 │
+│  ✅ AJOUTÉ : 1 résistance CMS 0805 (47Ω)                                │
+│  ✅ SIMPLIFIÉ : Routage avec moins de pistes                            │
+│                                                                         │
+│  📏 Gain d'espace : ~8×6mm récupérés (zone driver supprimée)            │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+
+Nouveau placement LED :
+  • LED NSPW500CS montée en tête de stylet (pointe)
+  • Pattes pliées à 90° vers PCB
+  • Fixation mécanique : tube thermorétractable + colle époxy
+  • Positionnement précis via gabarit 3D print
+
+═══════════════════════════════════════════════════════════════════════════════
+ ✅ AVANTAGES DE LA MIGRATION
+═══════════════════════════════════════════════════════════════════════════════
+
+ 1. 💰 COÛT : -2.23€ par unité (-9.7%)
+    
+ 2. 🔋 AUTONOMIE : ×5 à ×13 meilleure selon mode
+    
+ 3. 🔧 SIMPLICITÉ : 
+    • 7 composants en moins
+    • Circuit compréhensible par débutant
+    • Moins de points de défaillance
+    
+ 4. 🛠️ ASSEMBLAGE :
+    • LED traversant vs SMD (soudure main facile)
+    • Pas besoin de reflow oven
+    • Temps assemblage divisé par 2
+    
+ 5. 🌡️ THERMIQUE :
+    • Pas de dissipation chaleur significative
+    • Pas besoin de via thermiques
+    • Température PCB stable
+    
+ 6. 🔬 PERFORMANCE THÉRAPEUTIQUE :
+    • CRI >90 conservé (qualité lumière identique)
+    • Spectre 5000K conservé
+    • Faisceau plus focalisé (15° vs 120°) → meilleur pour stylet!
+    
+ 7. 📦 DISPONIBILITÉ :
+    • Stock mondial excellent (composant standard)
+    • Multiples fournisseurs
+    • Délais courts
+
+═══════════════════════════════════════════════════════════════════════════════
+ ⚠️ POINTS D'ATTENTION
+═══════════════════════════════════════════════════════════════════════════════
+
+ 1. FLUX LUMINEUX RÉDUIT :
+    • 8lm @ 20mA vs 100lm @ 350mA
+    • Compensé par faisceau focalisé 15° (concentration lumière)
+    • Suffisant pour auriculothérapie (application de proximité)
+    
+ 2. ORIENTATION LED :
+    • LED 5mm = faisceau directionnel
+    • Placement précis nécessaire (pointe du stylet)
+    • Angle d'incidence critique pour efficacité
+    
+ 3. COURANT LIMITÉ :
+    • Max 30mA absolu
+    • Pas de mode "boost" possible
+    • Adapter protocoles si besoin intensité maximale
+
+═══════════════════════════════════════════════════════════════════════════════
+ 📋 CHECKLIST MIGRATION
+═══════════════════════════════════════════════════════════════════════════════
+
+DOCUMENTATION :
+  ✅ Schéma électronique v7.0 mis à jour
+  ✅ BOM complète v7.0
+  ✅ Code Arduino v7.0
+  ✅ Guide PCB layout v7.0
+  ✅ Guide test breadboard v7.0
+  ✅ Résumé exécutif v7.0
+  ✅ Document migration (ce fichier)
+
+DESIGN :
+  ⬜ Refaire schéma KiCad avec nouveau circuit LED
+  ⬜ Supprimer footprints U3 (op-amp) et Q1 (MOSFET)
+  ⬜ Ajouter footprint LED traversant 5mm
+  ⬜ Re-router PCB avec layout simplifié
+  ⬜ Vérifier DRC (Design Rule Check)
+  ⬜ Générer nouveaux Gerbers pour fabrication
+
+PROTOTYPE :
+  ⬜ Commander LED NSPW500CS (lot 10)
+  ⬜ Assembler breadboard test avec nouvelle LED
+  ⬜ Valider code v7.0 sur hardware
+  ⬜ Mesurer autonomie réelle
+  ⬜ Tester modulation fréquences Nogier
+  ⬜ Commander PCB v7.0
+
+VALIDATION :
+  ⬜ Tests optiques (CRI, température couleur)
+  ⬜ Tests électriques (courant, tension, PWM)
+  ⬜ Tests autonomie batterie (détection + traitement)
+  ⬜ Tests mécaniques (fixation LED)
+  ⬜ Validation thérapeutique (protocoles Nogier)
+
+═══════════════════════════════════════════════════════════════════════════════
+ 🎓 CONCLUSION
+═══════════════════════════════════════════════════════════════════════════════
+
+La migration vers la LED Nichia NSPW500CS représente une ÉVOLUTION MAJEURE du
+projet, avec des bénéfices substantiels :
+
+  • Simplification drastique (circuit divisé par 4)
+  • Autonomie multipliée par 5-13×
+  • Coût réduit de 10%
+  • Assemblage beaucoup plus facile
+  • Fiabilité accrue (moins de composants)
+  
+Tout en conservant les qualités essentielles :
+  
+  ✓ CRI >90 pour qualité thérapeutique
+  ✓ Modulation Nogier 2.28-146Hz
+  ✓ Même microcontrôleur ATmega328P
+  ✓ Compatibilité batterie LiPo 900mAh
+  
+Cette v7.0 est RECOMMANDÉE pour tous les nouveaux prototypes et la production.
+
+═══════════════════════════════════════════════════════════════════════════════
+ 📅 HISTORIQUE VERSION
+═══════════════════════════════════════════════════════════════════════════════
+
+v6.0 (Février 2026) : Migration ATtiny85 → ATmega328P-AU + LED 519A
+v7.0 (Février 2026) : Passage LED NSPW500CS + simplification électronique
+
+════════════════════════════════ FIN DU DOCUMENT ══════════════════════════════

@@ -224,7 +224,6 @@ Bat: 5%    ← ⚠️ Critique
 - Modulation : Active (si ON dans menu)
 - Autonomie : ~75h (OLED allumé), ~174h (éteint)
 
-**Couleur LED RGB :** Selon fréquence (voir tableau)
 
 ---
 
@@ -271,17 +270,6 @@ Bat: 5%    ← ⚠️ Critique
 ### Tableau des 7 fréquences
 
 ```
-╔═══╦═══════╦═══════════╦══════════════╗
-║ # ║ Lettre║ Fréquence ║ Couleur LED  ║
-╠═══╬═══════╬═══════════╬══════════════╣
-║ 1 ║   A   ║  2.28 Hz  ║ 🔴 Rouge     ║
-║ 2 ║   B   ║  4.56 Hz  ║ 🟢 Vert      ║
-║ 3 ║   C   ║  9.12 Hz  ║ 🟡 Jaune     ║
-║ 4 ║   D   ║ 18.25 Hz  ║ 🔵 Bleu      ║
-║ 5 ║   E   ║ 36.50 Hz  ║ 🟣 Magenta   ║
-║ 6 ║   F   ║ 73.00 Hz  ║ 🔷 Cyan      ║
-║ 7 ║   G   ║ 146.00 Hz ║ ⚪ Blanc     ║
-╚═══╩═══════╩═══════════╩══════════════╝
 ```
 
 ### Affichage à l'écran
