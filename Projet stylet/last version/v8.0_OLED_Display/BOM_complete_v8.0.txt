@@ -11,10 +11,11 @@
   ✅ Câble JST 4 pins pour OLED
   ✅ Bouton MENU supplémentaire
   ✅ Connecteur JST-4 pour OLED
+  ✅ 🆕 Interrupteur ON/OFF (SW4) coupure batterie
 
 📊 COMPARAISON COÛTS :
    v7.0 : 20.88 € (sans OLED)
-   v8.0 : 24.87 € (+3.99 €, +19.1%) [économie cristal Y1+C5+C6 vs ancienne v8.0]
+   v8.0 : 24.95 € (+4.07 €, +19.5%) [économie cristal, +SW4 interrupteur ON/OFF]
 
 ══════════════════════════════════════════════════════════════════════════════
   📋 BOM PAR CATÉGORIE
@@ -101,6 +102,7 @@ REF  | QTÉ | DÉSIGNATION              | VALEUR/MODÈLE        | BOÎTIER    | 
 SW1  |  1  | Bouton FREQ              | Tactile 6×6mm        | TH 6×6mm   | C318884 | 0.05€  | Momentané SPST
 SW2  |  1  | Bouton MODE              | Tactile 6×6mm        | TH 6×6mm   | C318884 | 0.05€  | Momentané SPST
 SW3  |  1  | 🆕 Bouton MENU (v8.0)    | Tactile 6×6mm        | TH 6×6mm   | C318884 | 0.05€  | Momentané SPST
+SW4  |  1  | 🆕 Inter ON/OFF (v8.0)   | SS-12D00 slide       | TH 7×3mm   | C431540 | 0.08€  | SPDT, coupure VBAT
 
 ┌──────────────────────────────────────────────────────────────────────────┐
 │ PCB & FABRICATION                                                        │
@@ -133,14 +135,14 @@ Résistances 0805 (R1-R9)   |    9     |   0.09 €   | 100Ω à 100kΩ
 Condensateurs 0805 (C1-C8) |    6     |   0.08 €   | 100nF à 1µF (C5/C6 supprimés)
 Cristal (Y1)               |    0     |   0.00 €   | SUPPRIMÉ (horloge interne 8MHz)
 Connecteurs (J1-J3)        |    3     |   0.25 €   | ISP + JST-PH-2 + 🆕 JST-XH-4
-Boutons (SW1-SW3)          |    3     |   0.15 €   | 🆕 +1 bouton vs v7.0
+Boutons (SW1-SW4)          |    4     |   0.23 €   | 🆕 +1 bouton +1 inter vs v7.0
 PCB (fabrication)          |    1     |   2.00 €   | JLCPCB lot 5 (0.40€/pièce)
 Batterie + chargeur        |    2     |   6.50 €   | Li-Ion 2000mAh + TP4056
 ───────────────────────────┼──────────┼────────────┼──────────────────────────
-SOUS-TOTAL COMPOSANTS      |   34     |  17.11 €   | Sans PCB ni batterie
+SOUS-TOTAL COMPOSANTS      |   35     |  17.19 €   | Sans PCB ni batterie
 ───────────────────────────┼──────────┼────────────┼──────────────────────────
-🎯 TOTAL v8.0 (1 unité)    |   36     |  25.61 €   | Tout inclus
-🎯 TOTAL v8.0 (lot 5)      |  180     | 115.05 €   | 23.01 €/unité
+🎯 TOTAL v8.0 (1 unité)    |   37     |  25.69 €   | Tout inclus
+🎯 TOTAL v8.0 (lot 5)      |  185     | 115.45 €   | 23.09 €/unité
 
 
 ══════════════════════════════════════════════════════════════════════════════
@@ -156,12 +158,12 @@ Résistances                | 0.08 €  | 0.09 €  | +0.01 € | +1 résistance
 Condensateurs              | 0.10 €  | 0.08 €  | -0.02 € | C5/C6 supprimés (cristal retiré)
 Cristal                    | 0.15 €  | 0.00 €  | -0.15 € | SUPPRIMÉ (horloge interne)
 Connecteurs                | 0.13 €  | 0.25 €  | +0.12 € | +1 connecteur JST-4
-Boutons                    | 0.10 €  | 0.15 €  | +0.05 € | +1 bouton MENU
+Boutons                    | 0.10 €  | 0.23 €  | +0.13 € | +1 bouton MENU +1 inter ON/OFF
 PCB                        | 2.00 €  | 2.00 €  |  0.00 € | Même taille
 Batterie                   | 6.50 €  | 6.50 €  |  0.00 € | Identique
 ───────────────────────────┼─────────┼─────────┼─────────┼──────────────────────────
-TOTAL (1 unité)            | 20.88 € | 24.87 € | +3.99 € | +19.1%
-TOTAL (lot 5, par unité)   | 17.21 € | 20.87 € | +3.66 € | +21.3%
+TOTAL (1 unité)            | 20.88 € | 24.95 € | +4.07 € | +19.5%
+TOTAL (lot 5, par unité)   | 17.21 € | 20.95 € | +3.74 € | +21.7%
 
 
 ══════════════════════════════════════════════════════════════════════════════
@@ -181,6 +183,7 @@ COMPOSANTS TRAVERSANTS (Soudure manuelle) :
   ⚠️ SW1  : Bouton FREQ 6×6mm
   ⚠️ SW2  : Bouton MODE 6×6mm
   ⚠️ 🆕 SW3 : Bouton MENU 6×6mm (NOUVEAU v8.0)
+  ⚠️ 🆕 SW4 : Interrupteur ON/OFF slide (NOUVEAU v8.0)
   ⚠️ J1   : Connecteur ISP 2×3
   ⚠️ J2   : Connecteur JST-PH-2
   ⚠️ 🆕 J3 : Connecteur JST-XH-4 (NOUVEAU v8.0)
@@ -234,7 +237,8 @@ FORMAT BOM JLCPCB :
      2. Connecteur batterie J2
      3. 🆕 Connecteur OLED J3 (v8.0)
      4. Boutons SW1, SW2, 🆕 SW3 (v8.0)
-     5. LED principale D1 (en dernier, respect polarité)
+     5. 🆕 Interrupteur ON/OFF SW4 (v8.0)
+     6. LED principale D1 (en dernier, respect polarité)
 
 ÉTAPE 3 : Programmation ATmega328P
   ⚠️ Via ISP (J1) avec USBasp ou Arduino as ISP :
@@ -258,6 +262,7 @@ FORMAT BOM JLCPCB :
 
 ÉTAPE 6 : Tests fonctionnels
   ✅ Boutons : FREQ, MODE, 🆕 MENU fonctionnels
+  ✅ 🆕 Interrupteur ON/OFF : coupure/rétablissement alimentation
   ✅ LED principale : PWM variable selon mode
   ✅ LEDs RGB : changement couleur selon fréquence
   ✅ OLED : affichage batterie, mode, fréquence
@@ -273,6 +278,7 @@ FORMAT BOM JLCPCB :
   ✅ Impression 3D boîtier (design à créer)
   ✅ Trou pour LED principale D1
   ✅ Accès boutons SW1/SW2/SW3
+  ✅ 🆕 Fente latérale pour interrupteur SW4
   ✅ Fenêtre transparente pour OLED
 
 
@@ -288,6 +294,7 @@ AVANT COMMANDE :
   ✅ Gerbers exportés (9 fichiers .gbr + 2 .drl)
   ✅ 🆕 J3 ajouté et routé correctement
   ✅ 🆕 SW3 (MENU) ajouté sur PB0
+  ✅ 🆕 SW4 (ON/OFF) ajouté sur VBAT
   ✅ Code v8.0 testé sur breadboard (si possible)
 
 COMMANDE JLCPCB :
@@ -299,7 +306,7 @@ COMMANDE JLCPCB :
   ✅ Vérification positions composants (viewer 3D)
 
 POST-COMMANDE :
-  ✅ Commander composants traversants (AliExpress/LCSC)
+  ✅ Commander composants traversants (AliExpress/LCSC) — inclure SW4
   ✅ Commander OLED SSD1306 128×32 I2C (vérifier adresse 0x3C)
   ✅ Commander câble JST-4 ou crimp manuel
   ✅ Préparer outils soudure (fer, étain, flux)

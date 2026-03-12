@@ -10,6 +10,7 @@
   ✅ Connecteur J3 (JST-XH-4) pour OLED en haut du PCB
   ✅ Bouton SW3 (MENU) entre SW1 et SW2
   ✅ Optimisation routage I2C (3 périphériques)
+  ✅ 🆕 Interrupteur ON/OFF (SW4) sur bord PCB
 
 ══════════════════════════════════════════════════════════════════════════════
   📐 SPÉCIFICATIONS PCB
@@ -105,6 +106,8 @@ Vue depuis DESSOUS (PCB retourné)
    50mm  │    ●          ●           ●                         │
          │  Boutons alignés horizontalement                    │
          │                                                     │
+   55mm  │       🆕[SW4] ON/OFF (slide, bord latéral)         │
+         │                                                     │
    60mm  │  (Connecteurs traversants depuis face avant)       │
          │           [J1]      [J2]                           │
          │                                                     │
@@ -149,6 +152,7 @@ REF  | TYPE      | BOÎTIER    | X (mm) | Y (mm) | ROTATION | FACE | PRIORITÉ
 SW1  | Bouton    | 6×6mm TH   | 25.0   | 42.0   | 0°       | B    | MEDIUM   ← FREQ
 SW3  | Bouton    | 6×6mm TH   | 35.0   | 42.0   | 0°       | B    | MEDIUM   ← 🆕 MENU (v8.0)
 SW2  | Bouton    | 6×6mm TH   | 45.0   | 42.0   | 0°       | B    | MEDIUM   ← MODE
+SW4  | Inter.    | SS-12D00   | 8.0    | 55.0   | 90°      | B    | HIGH     ← 🆕 ON/OFF (v8.0)
 
 NOTES :
   - Coordonnées (X, Y) : Origine coin inférieur gauche du PCB
@@ -257,6 +261,63 @@ SÉRIGRAPHIE :
   - Taille texte   : 1.0 mm hauteur
 
 
+┌──────────────────────────────────────────────────────────────────────────┐
+│ 🆕 SW4 - Interrupteur ON/OFF (SS-12D00 Slide Switch) - NOUVEAU v8.0     │
+└──────────────────────────────────────────────────────────────────────────┘
+
+PLACEMENT :
+  - Face        : B.Cu (arrière)
+  - Position X  : 8.0 mm (bord latéral gauche PCB)
+  - Position Y  : 55.0 mm (entre boutons et connecteurs)
+  - Rotation    : 90° (levier parallèle au bord long du PCB)
+  - Offset bord : 1.5 mm du bord latéral (Edge.Cuts)
+
+DIMENSIONS FOOTPRINT :
+  - Corps switch    : 7.0 × 3.0 × 2.0 mm
+  - Levier          : 1.5 mm (dépassement latéral)
+  - Écartement pins : 2.0 mm (3 pins en ligne)
+  - Empreinte totale: 9.0 × 4.0 mm (avec clearance)
+
+CONNEXIONS :
+  Pin 1 (COM)   : J2 Pin 1 (+VBAT brut) - Piste 0.5mm (alimentation)
+  Pin 2 (NO/ON) : VBAT net (vers LDO U3 + diviseur R8) - Piste 0.5mm
+  Pin 3 (NC)    : Non connecté
+
+ORIENTATION :
+  ┌─────────────────────────────────────┐
+  │  Bord gauche PCB                    │
+  │  ─────────────────                  │
+  │         ┌───────┐                   │
+  │    ←──  │ SW4   │  Levier vers bord │
+  │         │ON  OFF│                   │
+  │         └───────┘                   │
+  │  ─────────────────                  │
+  └─────────────────────────────────────┘
+
+  Le levier doit dépasser légèrement du bord PCB
+  pour être accessible via une fente dans le tube aluminium.
+
+CLEARANCES :
+  - Distance SW1/SW2/SW3 : 13.0 mm (pas d'interférence)
+  - Distance J2          : 7.0 mm (connecteur batterie)
+  - Distance bord PCB    : 1.5 mm (accès levier)
+
+ROUTAGE :
+  - Pin 1 (COM) : Piste 0.5mm directe vers J2 Pin 1
+  - Pin 2 (NO)  : Piste 0.5mm vers net VBAT (rejoint U3/R8)
+  - Largeur 0.5mm obligatoire (piste alimentation)
+
+SÉRIGRAPHIE :
+  - Référence "SW4" : À côté du switch (B.Silkscreen)
+  - Légendes "ON" / "OFF" : De chaque côté du levier
+  - Taille texte   : 0.8 mm hauteur
+
+⚠️ ATTENTION :
+  - Le levier doit être accessible depuis l'extérieur du tube
+  - Prévoir fente de 10×3mm dans le tube aluminium Ø18mm
+  - Position choisie pour éviter actionnement accidentel
+
+
 ══════════════════════════════════════════════════════════════════════════════
   🛣️ RÈGLES DE ROUTAGE
 ══════════════════════════════════════════════════════════════════════════════
@@ -313,6 +374,7 @@ FACE AVANT (F.Cu) :
 
 FACE ARRIÈRE (B.Cu) :
   - Pistes VBAT horizontales
+  - 🆕 J2 → SW4 → VBAT (piste alimentation 0.5mm)
   - Retours GND locaux
   - Connexions boutons → U1
   - Pistes verticales (axe Y) si besoin
@@ -381,6 +443,26 @@ TRACÉ RECOMMANDÉ :
   - Via proche SW3 (distance <3mm)
   - Piste F.Cu vers U1 directe
   - Longueur totale : ~12 mm
+
+
+🆕 CONNEXION SW4 (INTERRUPTEUR ON/OFF) :
+  ┌───────────────────────────────────────────────────────────┐
+  │ J2 Pin 1 (+) ──0.5mm──→ SW4 Pin 1 (COM)        │
+  │     (B.Cu)                                       │
+  │                                                  │
+  │ SW4 Pin 2 (NO) ──0.5mm──→ VBAT net              │
+  │     (B.Cu)               │                       │
+  │                          ├──→ U3 VIN (LDO)      │
+  │                          └──→ R8 (diviseur)      │
+  │                                                  │
+  │ SW4 Pin 3 (NC) ── Non connecté                  │
+  └───────────────────────────────────────────────────────────┘
+
+TRACÉ RECOMMANDÉ :
+  - Piste 0.5mm (alimentation, pas de signal)
+  - Routage direct B.Cu (J2 et SW4 même face)
+  - Longueur totale J2 → SW4 : ~7 mm
+  - Longueur SW4 → U3/R8 : via vers F.Cu si nécessaire
 
 
 ══════════════════════════════════════════════════════════════════════════════
@@ -612,10 +694,11 @@ REF  | v7.0  | v8.0  | DELTA     | POSITION
 ─────┼───────┼───────┼───────────┼───────────────────────────────────────
 J3   | Absent| Ajouté| +1        | X=35, Y=8 (haut PCB)
 SW3  | Absent| Ajouté| +1        | X=35, Y=42 (centre boutons)
+SW4  | Absent| Ajouté| +1        | X=8, Y=55 (bord latéral)
 
 TOTAL COMPOSANTS :
   - v7.0 : 37 composants
-  - v8.0 : 35 composants (-1, expandeur I2C supprimé)
+  - v8.0 : 37 composants (+SW3, +J3, +SW4, -Y1, -C5, -C6)
 
 
 ┌──────────────────────────────────────────────────────────────────────────┐
@@ -629,6 +712,7 @@ SCL        | U1 PC5, U2 pin 14    | U1 PC5, U2 pin 14, J3 pin 3| +1 connexion
 GND        | (Multiple)           | (Multiple) + J3 pin 1     | +1 connexion
 +3.3V      | (Multiple)           | (Multiple) + J3 pin 2     | +1 connexion
 PB0        | NC (Non connecté)    | U1 pin 12 → SW3 pin 1     | Activé
+VBAT       | J2 → U3/R8 direct   | J2 → SW4 → U3/R8          | +SW4 série
 
 
 ┌──────────────────────────────────────────────────────────────────────────┐
@@ -665,9 +749,9 @@ Impact négligeable sur impédance GND et EMI.
 ══════════════════════════════════════════════════════════════════════════════
 
 COMPOSANTS :
-  - Total                : 36
+  - Total                : 37
   - SMD (F.Cu)          : 26
-  - Traversants (TH)    : 10
+  - Traversants (TH)    : 11
   - TQFP/SOIC           : 2
   - SOT-23              : 1
 
@@ -742,6 +826,7 @@ AVANT EXPORT GERBERS :
   ✅ Tous composants footprints assignés
   ✅ 🆕 J3 placé et routé correctement
   ✅ 🆕 SW3 placé et routé correctement
+  ✅ 🆕 SW4 placé sur bord latéral et routé (VBAT)
   ✅ Bus I2C vérifié (3 périphériques)
   ✅ Zones GND remplies (F.Cu + B.Cu)
   ✅ Sérigraphie lisible (pas sur pads)
@@ -751,7 +836,7 @@ POST-RÉCEPTION PCB :
   ✅ Inspection visuelle (pistes, vias, sérigraphie)
   ✅ Test continuité multimètre (GND, +3.3V)
   ✅ Test court-circuits (VBAT vs GND)
-  ✅ Soudure composants traversants (J1, J2, J3, SW1-3, Y1, D1)
+  ✅ Soudure composants traversants (J1, J2, J3, SW1-3, 🆕 SW4, D1)
   ✅ Programmation ATmega328P (ISP)
   ✅ Upload code v8.0 (avec bibliothèques OLED)
   ✅ Test OLED (affichage splash screen)
