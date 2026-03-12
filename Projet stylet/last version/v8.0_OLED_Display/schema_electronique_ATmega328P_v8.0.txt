@@ -46,8 +46,8 @@ PIN  | NOM       | FONCTION                    | CONNEXION
  4   | VCC       | Alimentation                | +3.3V (via C1 100nF)
  5   | GND       | Masse                       | GND
  6   | VCC       | Alimentation                | +3.3V
- 7   | PB6       | Cristal 8MHz                | XTAL1 (via C5 22pF)
- 8   | PB7       | Cristal 8MHz                | XTAL2 (via C6 22pF)
+ 7   | PB6       | ⚠️ Non connecté             | NC (horloge interne 8MHz)
+ 8   | PB7       | ⚠️ Non connecté             | NC (horloge interne 8MHz)
  9   | PD5       | ⚠️ Non connecté             | NC (flag NC)
  10  | PD6       | ⚠️ Non connecté             | NC (flag NC)
  11  | PD7       | ⚠️ Non connecté             | NC (flag NC)
@@ -74,7 +74,8 @@ PIN  | NOM       | FONCTION                    | CONNEXION
  32  | PD2/INT0  | Bouton FREQ (interruption)  | SW1 + Pull-up interne
 
 NOTES :
-  - Cristal 8MHz obligatoire (PB6/PB7) avec condensateurs 22pF
+  - Horloge interne 8MHz (pas de cristal externe, comme v7.0)
+  - PB6/PB7 non connectés (flag NC dans KiCad)
   - AVCC et VCC connectés à +3.3V (pas de séparation)
   - AREF : condensateur 100nF pour stabilisation
   - Tous les pins NC marqués avec flag "No Connect" dans KiCad
@@ -280,9 +281,10 @@ PIN | NOM   | FONCTION                  | CONNEXION
   - Programmateur : USBasp ou Arduino as ISP
   - Tension : 3.3V obligatoire (pas 5V !)
   - Fuses : 
-      Low  : 0xFF (8MHz cristal, slow rising power)
+      Low  : 0xE2 (8MHz internal RC oscillator, no CKDIV8)
       High : 0xDA (SPI enabled, boot 2048 words)
       Ext  : 0xFD (BOD 2.7V)
+  ⚠️ NOTE : Même configuration fuses que v7.0 (horloge interne)
 
 
 ══════════════════════════════════════════════════════════════════════════════
@@ -309,15 +311,8 @@ C4 - 100nF (ATmega328P AVCC pin 18)
   Pin 2 : GND
   Boîtier : 0805
 
-C5 - 22pF (Cristal XTAL1)
-  Pin 1 : PB6 (ATmega pin 7)
-  Pin 2 : GND
-  Boîtier : 0805
-
-C6 - 22pF (Cristal XTAL2)
-  Pin 1 : PB7 (ATmega pin 8)
-  Pin 2 : GND
-  Boîtier : 0805
+C5 - SUPPRIMÉ (cristal retiré, horloge interne 8MHz)
+C6 - SUPPRIMÉ (cristal retiré, horloge interne 8MHz)
 
 C7 - 1µF (LDO MCP1700 entrée)
   Pin 1 : VBAT (U3 pin 3)
@@ -331,7 +326,6 @@ C8 - 1µF (LDO MCP1700 sortie)
 
 RÈGLES DE PLACEMENT :
   - Condensateurs découplage VCC/GND : au plus près du pin VCC (< 5mm)
-  - Condensateurs cristal : au plus près du cristal
   - Condensateurs LDO : au plus près de U3
 
 
@@ -348,7 +342,7 @@ RÈGLES DE PLACEMENT :
     - 🆕 J3 VCC (pin 2) - OLED
     - R2a, R2b (pull-ups I2C)
     - D1 anode
-    - C1, C4, C8 (découplages)
+    - C1, C4, C7, C8 (découplages)
 
 VBAT : Tension batterie non régulée (3.7V)
   Connecté à :
@@ -441,7 +435,6 @@ PLACEMENT COMPOSANTS :
     - Boutons SW1, SW2, 🆕 SW3 (traversants)
     - LED principale D1 (traversant)
     - Connecteurs J1, J2, 🆕 J3 (traversants)
-    - Cristal Y1
 
 
 ══════════════════════════════════════════════════════════════════════════════
@@ -537,7 +530,8 @@ ALIMENTATION :
   ✅ AVCC découplé séparément
 
 MICROCONTRÔLEUR :
-  ✅ Cristal 8MHz avec condensateurs 22pF
+  ✅ Horloge interne 8MHz (pas de cristal, identique v7.0)
+  ✅ PB6/PB7 non connectés (flag NC)
   ✅ RESET avec pull-up 10kΩ
   ✅ Tous pins NC marqués avec flag
   ✅ 🆕 PB0 connecté à SW3 (MENU)
