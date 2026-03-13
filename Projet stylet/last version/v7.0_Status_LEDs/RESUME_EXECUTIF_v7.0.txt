@@ -23,10 +23,10 @@
 │ Fréquences thérapeutiques     │ 7 fréquences Nogier (2.28-146Hz)           │
 │ Modulation                    │ Porteuse 976Hz, profondeur 70%             │
 │ Modes de fonctionnement       │ Détection / Traitement / Lumière blanche   │
-│ Indicateurs                   │ 3 LEDs RGB (codage 7 fréquences)           │
+│ Indicateurs                   │ 3 LEDs rouges (codage 7 fréquences, ACTIVE-HIGH)│
 │ Boutons                       │ 2 (FREQ, MODE)                             │
 │ Mesure batterie               │ ADC 10-bit avec diviseur résistif          │
-│ Communication                 │ I2C (LEDs via PCF8574)                     │
+│ Communication                 │ I2C (LEDs via PCF8574A, addr 0x38 PCBA)    │
 │ Pins PWM disponibles          │ 6 sorties (D3,D5,D6,D9,D10,D11)            │
 │ ⭐ Coût prototype (RÉDUIT!)   │ ~21€ (unitaire) / ~13€ (série 10)          │
 │ Temps fabrication             │ 2 semaines (simplification!)               │
@@ -93,12 +93,12 @@ Remplacement Nichia 519A (3535 SMD, 350mA) → NSPW500CS (5mm traversant, 20mA)
         ┌────────────────────────┼────────────────────────┐
         │                        │                        │
 ┌───────┴────────┐   ┌───────────┴─────────┐   ┌────────┴────────┐
-│ ATmega328P-AU  │   │ ⭐ LED SIMPLIFIÉE!   │   │ PCF8574 I2C     │
-│ (8MHz)         │   │                     │   │ (LED RGB)       │
+│ ATmega328P-AU  │   │ ⭐ LED SIMPLIFIÉE!   │   │ PCF8574A I2C    │
+│ (8MHz int. RC) │   │                     │   │ (3× LED Rouge)  │
 │                │   │ [R 47Ω]             │   │                 │
-│ • Timer2 PWM   │──▶│    │                │   │ • LED R (470Ω)  │
-│ • ADC batterie │   │    LED NSPW500CS    │   │ • LED G (470Ω)  │
-│ • I2C Master   │──▶│    (5mm, 20mA)      │   │ • LED B (470Ω)  │
+│ • Timer2 PWM   │──▶│    │                │   │ • LED D1 (470Ω) │
+│ • ADC batterie │   │    LED NSPW500CS    │   │ • LED D2 (470Ω) │
+│ • I2C Master   │──▶│    (5mm, 20mA)      │   │ • LED D3 (470Ω) │
 │ • 2 boutons    │   │    CRI>90           │   └─────────────────┘
 └────────────────┘   │                     │
                      └─────────────────────┘
@@ -316,5 +316,22 @@ v4.0 (2025) : Première version fonctionnelle ATtiny85 + LED 519A
 v5.0 (2026) : Optimisation modulation 1kHz + PCB rectangulaire
 v6.0 (2026) : Migration ATmega328P-AU + driver courant constant
 v7.0 (2026) : LED NSPW500CS + circuit ultra-simplifié  ← VERSION ACTUELLE
+
+═══════════════════════════════════════════════════════════════════════════
+ ⚠️ NOTES PCBA - RETOUR D'EXPÉRIENCE (Mars 2026)
+═══════════════════════════════════════════════════════════════════════════
+
+Découvertes lors du premier assemblage PCBA :
+
+1. PCF8574A (pas PCF8574) : adresse I2C = 0x38 (pas 0x20)
+2. LEDs indicateurs : 3× rouges, ACTIVE-HIGH (1=ON, 0=OFF)
+3. Oscillateur interne RC 8MHz (pas de cristal externe)
+4. Fuses : lfuse=0xE2, hfuse=0xD9, efuse=0xFF
+5. Programmeur : USBasp recommandé (Arduino-as-ISP peu fiable)
+6. VCC TQFP-32 : pins 4 et 6 (pas pin 7)
+7. Debounce : logique corrigée avec variables séparées raw/confirmed
+
+→ Toutes les corrections sont appliquées dans le fichier
+  stylet_auriculo_ATmega328P_v7.0_flashVersion.ino
 
 ════════════════════════════════ FIN DU RÉSUMÉ ════════════════════════════════

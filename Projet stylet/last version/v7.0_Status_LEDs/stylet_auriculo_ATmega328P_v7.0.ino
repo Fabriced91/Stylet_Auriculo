@@ -88,6 +88,8 @@
 // ═══════════════════════════════════════════════════════════════════════════
 
 #define PCF8574_ADDRESS 0x20    // Adresse I2C par défaut (A0=A1=A2=GND)
+                                // ⚠️ PCBA utilise PCF8574A → adresse 0x38
+                                // Voir stylet_auriculo_ATmega328P_v7.0_flashVersion.ino
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  FRÉQUENCES DE NOGIER (Hz)

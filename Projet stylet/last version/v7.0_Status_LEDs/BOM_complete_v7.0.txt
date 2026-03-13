@@ -62,9 +62,9 @@ Note : Prix unitaires pour fabrication prototype (quantité 1).
 │     │                      │          │                 │ Digikey: ATMEGA328P  │        │              │
 │     │                      │          │                 │ -AU-ND               │        │              │
 ├─────┼──────────────────────┼──────────┼─────────────────┼──────────────────────┼────────┼──────────────┤
-│ U2  │ I2C I/O Expander     │ SOIC-16  │ PCF8574T        │ NXP PCF8574T         │   1    │    1.00€     │
-│     │ (LED RGB pilotage)   │          │                 │ Digikey: 568-1077    │        │              │
-│     │                      │          │                 │ LCSC: C59461         │        │              │
+│ U2  │ I2C I/O Expander     │ SOIC-16  │ PCF8574AT       │ NXP PCF8574AT        │   1    │    1.00€     │
+│     │ (LED indicateurs)    │          │ Adresse: 0x38   │ LCSC: C6526          │        │              │
+│     │                      │          │ (A0=A1=A2=GND)  │ Digikey: 568-1077-ND │        │              │
 └─────┴──────────────────────┴──────────┴─────────────────┴──────────────────────┴────────┴──────────────┘
 
 ═══ 2. RÉGULATEURS & GESTION ALIMENTATION ═══
@@ -195,16 +195,22 @@ TOTAL CONDENSATEURS : 8 pcs × 0.02-0.05€ = 0.28€  (vs 10 pcs en v6.0)
 ❌ REMPLACÉ (vs v6.0) :
    LED1 - Nichia 519A (3535 SMD, 350mA, 1.50€) → NSPW500CS (5mm, 20mA, 0.80€)
 
-═══ 7. LED INDICATEURS RGB (Inchangé vs v6.0) ═══
+═══ 7. LED INDICATEURS (3× Rouge sur PCBA) ═══
+
+⚠️ NOTE PCBA : Le PCBA utilise 3 LEDs ROUGES identiques (D1, D2, D3) en
+   mode ACTIVE-HIGH (écrire 1 = LED ON, 0 = LED OFF). Le codage des 7
+   fréquences se fait par combinaison de ces 3 LEDs (1 à 3 allumées).
+   Le concept RGB (Rouge/Vert/Bleu) du design original n'est pas utilisé
+   sur le PCBA actuel.
 
 ┌─────┬──────────────────────┬──────────┬─────────────────┬──────────────────────┬────────┬──────────────┐
 │ Ref │      Composant       │ Package  │     Couleur     │    Fournisseur       │  Qté   │ Prix unit.   │
 ├─────┼──────────────────────┼──────────┼─────────────────┼──────────────────────┼────────┼──────────────┤
-│ LED2│ LED Indicateur       │ 0805     │ Rouge           │ Kingbright APT2012EC │   1    │    0.05€     │
+│ LED2│ LED Indicateur D1    │ 0805     │ Rouge           │ Kingbright APT2012EC │   1    │    0.05€     │
 ├─────┼──────────────────────┼──────────┼─────────────────┼──────────────────────┼────────┼──────────────┤
-│ LED3│ LED Indicateur       │ 0805     │ Verte           │ Kingbright APT2012CGCK│   1    │    0.05€     │
+│ LED3│ LED Indicateur D2    │ 0805     │ Rouge           │ Kingbright APT2012EC │   1    │    0.05€     │
 ├─────┼──────────────────────┼──────────┼─────────────────┼──────────────────────┼────────┼──────────────┤
-│ LED4│ LED Indicateur       │ 0805     │ Bleue           │ Kingbright APT2012QBC│   1    │    0.05€     │
+│ LED4│ LED Indicateur D3    │ 0805     │ Rouge           │ Kingbright APT2012EC │   1    │    0.05€     │
 └─────┴──────────────────────┴──────────┴─────────────────┴──────────────────────┴────────┴──────────────┘
 
 ═══ 8. BOUTONS & INTERRUPTEURS (Inchangé vs v6.0) ═══
@@ -315,7 +321,7 @@ Note : LED NSPW500CS se soude directement sur PCB (pas de connecteur JST)
 ```csv
 Reference,Quantity,Manufacturer,Part Number,Description,Package,Supplier,Supplier Part,Unit Price,Notes
 U1,1,Microchip,ATMEGA328P-AU,MCU 8-bit 32KB Flash TQFP-32,TQFP-32,Digikey,ATMEGA328P-AU-ND,2.50,Inchangé v6
-U2,1,NXP,PCF8574T,I2C I/O Expander 8-bit,SOIC-16,LCSC,C59461,1.00,Inchangé v6
+U2,1,NXP,PCF8574AT,I2C I/O Expander 8-bit (addr 0x38),SOIC-16,LCSC,C6526,1.00,PCF8574A variante (0x38)
 U4,1,Holtek,HT7333-A,LDO 3.3V 250mA SOT-89,SOT-89,LCSC,C21583,0.40,Inchangé v6
 U5,1,NJT,TP4056,Li-Ion Charger 1A SOT23-6,SOT23-6,LCSC,C32574,0.30,Inchangé v6
 D1,1,Various,SS14,Diode Schottky 1A 40V,SOD-123,LCSC,C2480,0.10,Inchangé v6
@@ -331,9 +337,9 @@ R9,1,Various,0805,Resistor 5.1kΩ 0805,0805,LCSC,C27834,0.01,USB-C CC1
 R10,1,Various,0805,Resistor 5.1kΩ 0805,0805,LCSC,C27834,0.01,USB-C CC2
 C3-C10,8,Various,0805,Capacitor 100nF/10µF 0805,0805,LCSC,Various,0.28,Découplage
 LED1,1,Nichia,NSPW500CS,LED 5mm Blanc 5000K CRI90 20mA,5mm Traversant,Digikey,NSPW500CS-ND,0.80,NOUVEAU v7!
-LED2,1,Kingbright,APT2012EC,LED Rouge 0805,0805,LCSC,C2286,0.05,Indicateur RGB
-LED3,1,Kingbright,APT2012CGCK,LED Verte 0805,0805,LCSC,C2290,0.05,Indicateur RGB
-LED4,1,Kingbright,APT2012QBC,LED Bleue 0805,0805,LCSC,C2293,0.05,Indicateur RGB
+LED2,1,Kingbright,APT2012EC,LED Rouge 0805 (D1),0805,LCSC,C2286,0.05,Indicateur D1 (active-HIGH)
+LED3,1,Kingbright,APT2012EC,LED Rouge 0805 (D2),0805,LCSC,C2286,0.05,Indicateur D2 (active-HIGH)
+LED4,1,Kingbright,APT2012EC,LED Rouge 0805 (D3),0805,LCSC,C2286,0.05,Indicateur D3 (active-HIGH)
 SW1,1,XKB,TS-1185EC-C,Tactile Switch Side-mount,SMD 4x4,LCSC,C318884,0.20,Bouton FREQ
 SW2,1,XKB,TS-1185EC-C,Tactile Switch Side-mount,SMD 4x4,LCSC,C318884,0.20,Bouton MODE
 J1,1,HRO,TYPE-C-31-M-12,USB-C Receptacle 16pin,SMD Mid-mount,LCSC,C165948,0.40,Charge

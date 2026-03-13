@@ -46,7 +46,17 @@ COMPOSANTS ACTIFS :
   ☐ 1× LED Nichia NSPW500CS (5mm through-hole, CRI>90, 20mA)
   ☐ 3× LED standard 5mm (Rouge, Verte, Bleue pour indicateurs)
   ☐ 1× Module TP4056 (charge LiPo, breakout board)
-  ☐ 1× PCF8574 (optionnel, I2C expander DIP-16)
+  ☐ 1× PCF8574 (optionnel, I2C expander DIP-16, adresse 0x20)
+
+  ⚠️ NOTE IMPORTANTE : PCF8574 vs PCF8574A
+    • Breadboard : PCF8574 (sans "A") → adresse I2C = 0x20
+    • PCBA final : PCF8574A (variante "A") → adresse I2C = 0x38
+    Le code breadboard utilise 0x20, le code flash (PCBA) utilise 0x38.
+    Si vous utilisez un PCF8574A sur breadboard, changez l'adresse dans le code!
+
+  ⚠️ NOTE PCBA : Les LEDs indicatrices du PCBA sont 3× rouges (pas RGB)
+    et fonctionnent en ACTIVE-HIGH (écrire 1 = LED ON, 0 = LED OFF).
+    Le code flash version a été corrigé en conséquence.
 
   ⚠️ COMPOSANTS SUPPRIMÉS v7.0 (plus nécessaires) :
     ✗ MOSFET 2N7000/2N2222 (driver supprimé)

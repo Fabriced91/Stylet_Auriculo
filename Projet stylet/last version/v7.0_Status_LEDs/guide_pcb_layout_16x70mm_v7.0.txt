@@ -56,7 +56,7 @@ NOUVEAUTÉS v7.0 :
 │  ┌────────────────────────────────────────────────────────┐     │
 │  │  • ATmega328P-AU (TQFP-32) 7×7mm                       │     │
 │  │  • Diviseur résistif ADC (100k/33k)                    │     │
-│  │  • PCF8574 I2C expander (SOIC-16)                      │     │
+│  │  • PCF8574A I2C expander (SOIC-16, adresse 0x38)   │     │
 │  │  • Pull-ups I2C (2× 4.7kΩ)                             │     │
 │  │  • Condensateurs découplage (2× 100nF VCC+AVCC)        │     │
 │  │  • Ferrite + 100nF sur AVCC (filtrage analogique)     │     │
@@ -110,7 +110,7 @@ NOTES MONTAGE LED :
 ═══ ZONE 3 : MICROCONTRÔLEUR (12-30mm) ═══
 
 U_MCU    [U1]  @ (7.5, 20)    - Top      ATmega328P-AU TQFP-32
-U_I2C    [U2]  @ (7.5, 27)    - Top      PCF8574-SOIC16
+U_I2C    [U2]  @ (7.5, 27)    - Top      PCF8574A-SOIC16 (addr 0x38)
 R_ADC1   [R2]  @ (2, 18)      - Top      100kΩ 0805 (diviseur haut)
 R_ADC2   [R3]  @ (2, 21)      - Top      33kΩ 0805 (diviseur bas)
 R_SDA    [R4]  @ (12, 25)     - Top      4.7kΩ 0805 (pull-up SDA)
@@ -549,7 +549,12 @@ COÛT :
   ✓ PCB : Surface réduite (-11%)
   ✓ Assemblage : Temps réduit (-40%)
 
-FIABILITÉ :
+NOTES PCBA (retour d'expérience) :
+   ⚠️ PCF8574A (variante "A") utilisé sur PCBA : adresse I2C = 0x38
+   ⚠️ LEDs indicateurs : 3× rouges, active-HIGH (écrire 1 = ON)
+   ⚠️ Oscillateur interne RC 8MHz (pas de cristal externe)
+   ⚠️ Fuses : lfuse=0xE2, hfuse=0xD9, efuse=0xFF
+   ⚠️ Programmeur recommandé : USBasp (pas Arduino-as-ISP)
   ✓ Moins de composants = moins de points de défaillance
   ✓ LED through-hole = soudure robuste
   ✓ Pas de MOSFET en mode linéaire (chaleur)

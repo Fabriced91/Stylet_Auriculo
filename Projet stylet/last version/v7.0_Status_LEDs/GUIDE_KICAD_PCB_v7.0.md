@@ -13,8 +13,8 @@
 ┌─ ZONE 1 (0-10mm) ─┬─ ZONE 2 (10-25mm) ─┬─ ZONE 3 (25-50mm) ─┬─ ZONE 4 (50-70mm) ─┐
 │ Alimentation      │ Interface          │ Contrôle           │ Sortie             │
 │ - Pads OUT+/OUT-  │ - Boutons (2×)     │ - ATmega328P       │ - LED NSPW500CS    │
-│ - Switch ON/OFF   │ - LEDs RGB (3×)    │ - Passifs          │ - Résistance 47Ω   │
-│ - LDO 3.3V        │ - PCF8574          │ - Diviseur ADC     │                    │
+│ - Switch ON/OFF   │ - LEDs Indic (3×)  │ - Passifs          │ - Résistance 47Ω   │
+│ - LDO 3.3V        │ - PCF8574A         │ - Diviseur ADC     │                    │
 │ - Condensateurs   │ - Résistances LED  │ - Pull-ups I2C     │                    │
 └───────────────────┴────────────────────┴────────────────────┴────────────────────┘
 ```
@@ -39,9 +39,11 @@ Avant de commencer, assurez-vous d'avoir :
 - Symbole : `MCU_Microchip_ATmega:ATmega328P-AU`
 - Empreinte : `Package_QFP:TQFP-32_7x7mm_P0.8mm`
 
-**PCF8574** :
+**PCF8574A** :
 - Symbole : `Interface_Expansion:PCF8574`
 - Empreinte : `Package_SO:SOIC-16_3.9x9.9mm_P1.27mm`
+- **ATTENTION** : Variante "A" utilisée sur PCBA (adresse I2C = 0x38 avec A0=A1=A2=GND)
+  Le PCF8574 standard (sans "A") a l'adresse 0x20. Vérifier le composant commandé !
 
 **LDO MCP1700** :
 - Symbole : `Regulator_Linear:MCP1700-3302E_SOT23`
@@ -56,8 +58,10 @@ Avant de commencer, assurez-vous d'avoir :
 **Boutons** : 6×6mm traversants
 - Empreinte : `Button_Switch_THT:SW_PUSH_6mm`
 
-**LEDs RGB** : 5mm traversantes
-- Empreinte : `LED_THT:LED_D5.0mm`
+**LEDs Indicateurs** : 0805 SMD (3× Rouge sur PCBA, active-HIGH)
+- Empreinte : `LED_SMD:LED_0805_2012Metric`
+- NOTE PCBA : Toutes les LEDs sont ROUGES. Le codage fréquence utilise
+  les combinaisons de 1 à 3 LEDs allumées (pas un codage couleur RGB).
 
 **LED NSPW500CS** : 5mm traversante
 - Empreinte : `LED_THT:LED_D5.0mm`
@@ -170,32 +174,32 @@ Avant de commencer, assurez-vous d'avoir :
    - Pin 2 → GND
    - Label : `BTN_MODE`
 
-**PCF8574** :
+**PCF8574A** :
 1. Appuyer **A**
 2. Chercher : `Interface_Expansion:PCF8574`
-3. Placer **U3**
+3. Placer **U3** (PCF8574A sur PCBA, adresse 0x38)
 4. Connecter :
    - VCC (pin 16) → VCC_3V3
    - GND (pin 8) → GND
    - SDA (pin 15) → PC4 (ATmega pin 27)
    - SCL (pin 14) → PC5 (ATmega pin 28)
-   - A0, A1, A2 (pins 1-3) → GND
+   - A0, A1, A2 (pins 1-3) → GND (donne adresse 0x38 pour PCF8574A)
    - INT (pin 13) → Non connecté (ou PC1 si besoin)
 
-**LEDs RGB** :
-1. Placer **LED1** (Rouge)
-   - Anode → Résistance **R5** (470Ω) → PCF8574 P0 (pin 4)
+**LEDs Indicateurs** (3× Rouge sur PCBA, active-HIGH) :
+1. Placer **LED1** (Rouge D1)
+   - Anode → Résistance **R5** (470Ω) → PCF8574A P0 (pin 4)
    - Cathode → GND
 
-2. Placer **LED2** (Verte)
-   - Anode → Résistance **R6** (470Ω) → PCF8574 P1 (pin 5)
+2. Placer **LED2** (Rouge D2)
+   - Anode → Résistance **R6** (470Ω) → PCF8574A P1 (pin 5)
    - Cathode → GND
 
-3. Placer **LED3** (Bleue)
-   - Anode → Résistance **R7** (470Ω) → PCF8574 P2 (pin 6)
+3. Placer **LED3** (Rouge D3)
+   - Anode → Résistance **R7** (470Ω) → PCF8574A P2 (pin 6)
    - Cathode → GND
 
-**Note** : Vérifier sens LEDs selon câblage sink/source !
+**Note** : LEDs en mode ACTIVE-HIGH (écrire 1 sur PCF8574A P0-P2 = LED ON)
 
 #### Bloc Sortie LED (droite)
 
@@ -236,10 +240,10 @@ Avant de commencer, assurez-vous d'avoir :
 |-----------|-----------|-----------|
 | U1 | MCP1700 | `Package_TO_SOT_SMD:SOT-23` |
 | U2 | ATmega328P-AU | `Package_QFP:TQFP-32_7x7mm_P0.8mm` |
-| U3 | PCF8574 | `Package_SO:SOIC-16_3.9x9.9mm_P1.27mm` |
+| U3 | PCF8574A | `Package_SO:SOIC-16_3.9x9.9mm_P1.27mm` |
 | SW1 | Switch slide | `Button_Switch_SMD:SW_SPDT_PCM12` (ou custom) |
 | SW2, SW3 | Boutons | `Button_Switch_THT:SW_PUSH_6mm` |
-| LED1-4 | LEDs 5mm | `LED_THT:LED_D5.0mm` |
+| LED1-3 | LEDs rouge 0805 | `LED_SMD:LED_0805_2012Metric` |
 | R1-R7 | Résistances SMD | `Resistor_SMD:R_0805_2012Metric` |
 | R8 | Résistance 1/4W | `Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal` |
 | C1-C5 | Condensateurs | `Capacitor_SMD:C_0805_2012Metric` |
@@ -339,7 +343,7 @@ Avant de commencer, assurez-vous d'avoir :
 6. **R5, R6, R7** (470Ω) :
    - Près des LEDs respectives, côté bottom si place manque
 
-7. **U3** (PCF8574) :
+7. **U3** (PCF8574A) :
    - Position : X=18mm, Y=12mm
    - Orientation : IC vers haut (pin 1 en haut à gauche)
 
@@ -420,9 +424,9 @@ Avant de commencer, assurez-vous d'avoir :
    - SW3 → ATmega PD4
    - Autres pins boutons → GND (via proche)
 
-7. **LEDs RGB** :
+7. **LEDs indicateurs (rouge 0805)** :
    - Width : **0.3mm**
-   - PCF8574 P0/P1/P2 → R5/R6/R7 → LED anodes
+   - PCF8574A P0/P1/P2 → R5/R6/R7 → LED anodes
 
 8. **ADC Batterie** :
    - Width : **0.3mm**

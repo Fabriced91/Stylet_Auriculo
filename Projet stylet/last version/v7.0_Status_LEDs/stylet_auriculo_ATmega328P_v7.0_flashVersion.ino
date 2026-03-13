@@ -8,10 +8,11 @@
  * 
  * DESCRIPTION :
  * Code optimisé pour ATmega328P-AU standalone sur PCBA avec :
- *   - Cristal externe 8MHz
- *   - LDO MCP1700T 3.3V (VREF = 3.3V)
+ *   - Oscillateur interne RC 8MHz (pas de cristal externe)
+ *   - LDO 3.3V (MCP1700T ou HT7333-A selon BOM) (VREF = 3.3V)
  *   - Batterie Li-Ion 3.7V (VBAT_MAX = 4.2V)
  *   - Debug Serial désactivé (pas d'UART sur PCBA)
+ *   - PCF8574A (adresse I2C 0x38, variante "A")
  * 
  * DIFFÉRENCES vs version Breadboard :
  *   - VREF = 3.3V (au lieu de 5V Arduino Uno)
@@ -20,12 +21,12 @@
  *   - Variable debug supprimée
  * 
  * ARCHITECTURE MATÉRIELLE (PCBA) :
- * - Microcontrôleur : ATmega328P-AU (TQFP-32) @ 8MHz cristal externe
- * - Alimentation : LDO MCP1700T 3.3V depuis Li-Ion 3.7V
+ * - Microcontrôleur : ATmega328P-AU (TQFP-32) @ 8MHz oscillateur interne RC
+ * - Alimentation : LDO 3.3V (MCP1700T ou HT7333-A) depuis Li-Ion 3.7V
  * - LED thérapeutique : Nichia NSPW500CS (CRI >90, 20mA, 5mm)
  * - Driver LED : Résistance série 47Ω
  * - Batterie : Li-Ion 3.7V (4.2V max, 3.0V min)
- * - LED indicateurs : Via PCF8574 I2C (RGB pour fréquence)
+ * - LED indicateurs : Via PCF8574A I2C @ 0x38 (3× LED rouges, active-HIGH)
  * - Programmation : ISP 6-pin (USBasp)
  * 
  * FONCTIONNALITÉS :
@@ -48,14 +49,17 @@
  * - PB5 (pin 17) : SCK   (ISP)
  * - PC6 (pin 29) : RESET (ISP)
  * 
- * FUSES RECOMMANDÉS (8MHz cristal externe, BOD 2.7V) :
- *   lfuse = 0xFF  (cristal externe full swing)
+ * FUSES UTILISÉS (8MHz oscillateur interne RC, BOD désactivé) :
+ *   lfuse = 0xE2  (oscillateur interne RC 8MHz, pas de CKDIV8)
  *   hfuse = 0xD9  (no bootloader, EESAVE off)
- *   efuse = 0xFD  (BOD 2.7V)
+ *   efuse = 0xFF  (BOD désactivé)
  * 
  * COMMANDE AVRDUDE :
  *   avrdude -c usbasp -p m328p -U flash:w:stylet_auriculo_ATmega328P_v7.0_flashVersion.hex:i
- *   avrdude -c usbasp -p m328p -U lfuse:w:0xFF:m -U hfuse:w:0xD9:m -U efuse:w:0xFD:m
+ *   avrdude -c usbasp -p m328p -U lfuse:w:0xE2:m -U hfuse:w:0xD9:m -U efuse:w:0xFF:m
+ * 
+ * NOTE : Le PCBA n'a PAS de cristal externe. L'oscillateur interne RC 8MHz
+ * est suffisamment précis pour ce projet (Timer2 PWM, I2C 100kHz).
  * 
  * AUTEUR : Fabrice Deconynck
  * VERSION : 7.0 Flash PCBA
@@ -84,10 +88,10 @@
 #define ADC_BATTERY_PIN A0      // A0 (PC0) - ADC0 Mesure batterie
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  ADRESSE I2C PCF8574 (LED Indicateurs)
+//  ADRESSE I2C PCF8574A (LED Indicateurs)
 // ═══════════════════════════════════════════════════════════════════════════
 
-#define PCF8574_ADDRESS 0x20    // A0=A1=A2=GND
+#define PCF8574_ADDRESS 0x38    // PCF8574A avec A0=A1=A2=GND (0x38-0x3F)
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  FRÉQUENCES DE NOGIER (Hz)
@@ -153,14 +157,16 @@ const uint8_t numModes = 3;
 //  INDICATEURS LED RGB (PCF8574)
 // ═══════════════════════════════════════════════════════════════════════════
 
+// ACTIVE-HIGH: écrire 1 = LED ON, 0 = LED OFF
+// P0 = D1, P1 = D2, P2 = D3 (toutes rouges sur PCBA)
 const uint8_t freqIndicators[7] = {
-  0b11111000,  // A (2.28Hz)  : Rouge
-  0b11110100,  // B (4.56Hz)  : Vert
-  0b11110000,  // C (9.12Hz)  : Jaune
-  0b11111010,  // D (18.25Hz) : Bleu
-  0b11111001,  // E (36.50Hz) : Magenta
-  0b11110101,  // F (73Hz)    : Cyan
-  0b11110000   // G (146Hz)   : Blanc
+  0b00000001,  // A (2.28Hz)  : D1 seule         (1 LED)
+  0b00000010,  // B (4.56Hz)  : D2 seule         (1 LED)
+  0b00000011,  // C (9.12Hz)  : D1+D2            (2 LEDs)
+  0b00000100,  // D (18.25Hz) : D3 seule         (1 LED)
+  0b00000101,  // E (36.50Hz) : D1+D3            (2 LEDs)
+  0b00000110,  // F (73Hz)    : D2+D3            (2 LEDs)
+  0b00000111   // G (146Hz)   : D1+D2+D3         (3 LEDs)
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -359,58 +365,64 @@ void generateModulation() {
 
 void handleButtons() {
   
-  static bool lastBtnFreq = HIGH;
-  static bool lastBtnMode = HIGH;
+  // Debounce corrigé : séparer "dernière lecture" et "état confirmé"
+  static bool lastFreqReading = HIGH;   // Dernière lecture brute
+  static bool lastModeReading = HIGH;
+  static bool freqState = HIGH;          // État confirmé (debounced)
+  static bool modeState = HIGH;
   static uint32_t lastDebounceFreq = 0;
   static uint32_t lastDebounceMode = 0;
   
   const uint16_t debounceDelay = 50;
   
   // ═══ BOUTON FRÉQUENCE ═══
-  bool btnFreq = digitalRead(BTN_FREQ_PIN);
+  bool freqReading = digitalRead(BTN_FREQ_PIN);
   
-  if (btnFreq != lastBtnFreq) {
+  if (freqReading != lastFreqReading) {
     lastDebounceFreq = millis();
   }
   
   if ((millis() - lastDebounceFreq) > debounceDelay) {
-    if (btnFreq == LOW && lastBtnFreq == HIGH) {
-      currentFreq = (currentFreq + 1) % numFreqs;
-      updateFreqIndicators();
-      flashFeedback(2, 80);
-      delay(200);
+    if (freqReading != freqState) {
+      freqState = freqReading;
+      if (freqState == LOW) {  // Front descendant confirmé
+        currentFreq = (currentFreq + 1) % numFreqs;
+        updateFreqIndicators();
+        flashFeedback(2, 80);
+      }
     }
   }
-  lastBtnFreq = btnFreq;
+  lastFreqReading = freqReading;
   
   // ═══ BOUTON MODE ═══
-  bool btnMode = digitalRead(BTN_MODE_PIN);
+  bool modeReading = digitalRead(BTN_MODE_PIN);
   
-  if (btnMode != lastBtnMode) {
+  if (modeReading != lastModeReading) {
     lastDebounceMode = millis();
   }
   
   if ((millis() - lastDebounceMode) > debounceDelay) {
-    if (btnMode == LOW && lastBtnMode == HIGH) {
-      currentMode = (Mode)((currentMode + 1) % numModes);
-      updateFreqIndicators();
-      
-      switch (currentMode) {
-        case MODE_DETECTION:
-          flashFeedback(1, 200);
-          break;
-        case MODE_TRAITEMENT:
-          flashFeedback(2, 100);
-          break;
-        case MODE_BLANC:
-          flashFeedback(3, 60);
-          break;
+    if (modeReading != modeState) {
+      modeState = modeReading;
+      if (modeState == LOW) {  // Front descendant confirmé
+        currentMode = (Mode)((currentMode + 1) % numModes);
+        updateFreqIndicators();
+        
+        switch (currentMode) {
+          case MODE_DETECTION:
+            flashFeedback(1, 200);
+            break;
+          case MODE_TRAITEMENT:
+            flashFeedback(2, 100);
+            break;
+          case MODE_BLANC:
+            flashFeedback(3, 60);
+            break;
+        }
       }
-      
-      delay(200);
     }
   }
-  lastBtnMode = btnMode;
+  lastModeReading = modeReading;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -466,12 +478,12 @@ void blinkBatteryWarning() {
   
   for (uint8_t i = 0; i < 3; i++) {
     Wire.beginTransmission(PCF8574_ADDRESS);
-    Wire.write(0b11111110);  // Rouge seulement
+    Wire.write(0b00000111);  // Toutes LEDs ON (active-HIGH) = avertissement
     Wire.endTransmission();
     delay(100);
     
     Wire.beginTransmission(PCF8574_ADDRESS);
-    Wire.write(0b11111111);  // Éteint
+    Wire.write(0b00000000);  // Toutes LEDs OFF (active-HIGH)
     Wire.endTransmission();
     delay(100);
   }

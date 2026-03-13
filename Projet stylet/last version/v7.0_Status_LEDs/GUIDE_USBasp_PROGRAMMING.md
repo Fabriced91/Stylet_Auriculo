@@ -32,18 +32,38 @@ Lancer `Sketch > Upload Using Programmer`
 - Si la signature lue est **`1E 95 0F`** → le chip est bien un ATmega328P et il répond correctement
 - Si erreur de signature → vérifier le câblage et le jumper slow clock
 
-### Étape 2 : Graver le bootloader
+### Étape 2 : Graver le bootloader (configurer les fuses)
 
 `Tools > Burn Bootloader`
 
 - Cela configure les **fuses** pour l'horloge interne 8MHz
 - Installe le bootloader Optiboot (optionnel mais utile pour programmation série future)
 
+**Fuses réels brûlés sur PCBA (8MHz oscillateur interne RC) :**
+```
+lfuse = 0xE2  (oscillateur interne RC 8MHz, CKDIV8 désactivé)
+hfuse = 0xD9  (no bootloader, EESAVE off)
+efuse = 0xFF  (BOD désactivé)
+```
+
+**Commande avrdude pour vérification :**
+```
+avrdude -c usbasp -p m328p -U lfuse:r:-:h -U hfuse:r:-:h -U efuse:r:-:h
+```
+
+**Commande avrdude pour écriture manuelle des fuses :**
+```
+avrdude -c usbasp -p m328p -U lfuse:w:0xE2:m -U hfuse:w:0xD9:m -U efuse:w:0xFF:m
+```
+
 ### Étape 3 : Uploader le sketch
 
 `Sketch > Upload Using Programmer`
 
-- Charge le fichier `stylet_auriculo_ATmega328P_v7.0.ino` directement dans la flash de l'ATmega328P-AU
+- Charge le fichier `stylet_auriculo_ATmega328P_v7.0_flashVersion.ino` directement dans la flash de l'ATmega328P-AU
+
+**Note** : Ce fichier utilise PCF8574A (adresse I2C = 0x38), pas PCF8574 (0x20).
+Les LEDs indicateurs sont 3× rouges, active-HIGH (écrire 1 = ON).
 
 ## Avantages du USBasp vs Arduino-as-ISP
 
@@ -61,3 +81,6 @@ Lancer `Sketch > Upload Using Programmer`
 - Le jumper **JP1 (slow clock)** est essentiel pour un ATmega neuf tournant à 1MHz (fuses usine : CKDIV8 activé)
 - Après avoir gravé le bootloader (fuses 8MHz interne), le jumper slow clock peut être retiré pour les uploads suivants
 - Pour programmer à **3.3V** (tension nominale du PCBA), vérifier si le USBasp a un jumper de sélection tension VCC (certains modèles proposent 5V/3.3V)
+- Le PCBA n'a **PAS de cristal externe** : l'ATmega utilise l'oscillateur interne RC 8MHz (lfuse=0xE2)
+- L'Arduino-as-ISP s'est révélé peu fiable pour ce projet (problèmes d'auto-reset non résolus avec avrdude 8.0)
+- Le USBasp est **fortement recommandé** pour la programmation du PCBA

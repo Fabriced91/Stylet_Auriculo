@@ -142,12 +142,14 @@ ALTERNATIVE : Batterie LiPo avec PCM intégré (pas de DW01A externe requis)
 │  Pin 1  (PD3)    : PWM LED principale (Timer2 OC2B)                 │
 │  Pin 2  (PD4)    : Bouton MODE                                      │
 │  Pin 23 (PC0/A0) : ADC Mesure batterie                              │
-│  Pin 27 (PC4)    : I2C SDA (LED indicateurs via PCF8574)            │
-│  Pin 28 (PC5)    : I2C SCL (LED indicateurs via PCF8574)            │
+│  Pin 27 (PC4)    : I2C SDA (LED indicateurs via PCF8574A)            │
+│  Pin 28 (PC5)    : I2C SCL (LED indicateurs via PCF8574A)            │
 │  Pin 32 (PD2)    : Bouton FREQ (INT0)                               │
 │                                                                     │
-│  Pin 7  (VCC)    : 3.3V régulé                                      │
-│  Pin 8  (GND)    : Ground                                           │
+│  Pin 4  (VCC)    : 3.3V régulé                                      │
+│  Pin 6  (VCC)    : 3.3V régulé                                      │
+│  Pin 3  (GND)    : Ground                                           │
+│  Pin 5  (GND)    : Ground                                           │
 │  Pin 20 (AVCC)   : 3.3V (avec filtre LC)                            │
 │  Pin 22 (GND)    : Ground analogique                                │
 │  Pin 21 (AREF)   : Référence ADC (condensateur 100nF → GND)         │
@@ -169,7 +171,9 @@ ALTERNATIVE : Batterie LiPo avec PCM intégré (pas de DW01A externe requis)
 │  1  │ PD3/OC2B │ PWM LED principale     │ Vers résistance série LED   │
 │  2  │ PD4      │ Bouton MODE            │ Bouton MODE vers GND (pull-up)│
 │  7  │ VCC      │ Alimentation +         │ 3.3V régulé (LDO)           │
+│     │ NOTE     │ TQFP-32: VCC = pins    │ Pin 4 et Pin 6 (pas pin 7) │
 │  8  │ GND      │ Ground digital         │ GND commun                  │
+│     │ NOTE     │ TQFP-32: GND = pins    │ Pin 3, 5, 21                │
 │ 20  │ AVCC     │ Alimentation analogique│ 3.3V + ferrite + 100nF      │
 │ 21  │ AREF     │ Référence ADC          │ 100nF vers GND              │
 │ 22  │ GND      │ Ground analogique      │ GND commun                  │
@@ -367,23 +371,31 @@ Avec LED 20mA (vs 350mA v6), le clignotement est encore moins visible!
  6️⃣ LED INDICATEURS RGB (Inchangé vs v6.0)
 ═══════════════════════════════════════════════════════════════════════════════
 
-Les LED indicateurs utilisent toujours un expandeur I2C PCF8574.
+Les LED indicateurs utilisent un expandeur I2C PCF8574A.
+
+⚠️ ATTENTION : Le PCBA utilise un PCF8574A (variante "A"), dont l'adresse
+  de base est 0x38 (avec A0=A1=A2=GND), PAS 0x20 comme le PCF8574 standard.
+  Sur breadboard avec PCF8574 (sans A), l'adresse est 0x20.
+
+⚠️ NOTE PCBA : Les 3 LEDs indicatrices sont toutes ROUGES (D1, D2, D3)
+  et fonctionnent en ACTIVE-HIGH (écrire 1 = LED ON, 0 = LED OFF).
+  Le codage des 7 fréquences utilise les combinaisons de 1 à 3 LEDs.
 
   ATmega328P PC4 (SDA) ───┐
-  ATmega328P PC5 (SCL) ───┼─── [PCF8574 I2C] ──┬── LED R [470Ω] GND
-                          │  (Adresse 0x20)    ├── LED G [470Ω] GND
-                          │                     └── LED B [470Ω] GND
+  ATmega328P PC5 (SCL) ───┼─── [PCF8574A I2C] ──┬── LED D1 [470Ω] GND
+                          │  (Adresse 0x38)    ├── LED D2 [470Ω] GND
+                          │                     └── LED D3 [470Ω] GND
                           │
                      Pull-ups 4.7kΩ → VCC
 
-Codage 7 fréquences Nogier :
-  • Freq A (2.28Hz)  : Rouge
-  • Freq B (4.56Hz)  : Vert
-  • Freq C (9.12Hz)  : Jaune (R+G)
-  • Freq D (18.25Hz) : Bleu
-  • Freq E (36.50Hz) : Magenta (R+B)
-  • Freq F (73Hz)    : Cyan (G+B)
-  • Freq G (146Hz)   : Blanc (R+G+B)
+Codage 7 fréquences Nogier (combinaisons de LEDs rouges) :
+  • Freq A (2.28Hz)  : D1 seule          (1 LED)
+  • Freq B (4.56Hz)  : D2 seule          (1 LED)
+  • Freq C (9.12Hz)  : D1+D2             (2 LEDs)
+  • Freq D (18.25Hz) : D3 seule          (1 LED)
+  • Freq E (36.50Hz) : D1+D3             (2 LEDs)
+  • Freq F (73Hz)    : D2+D3             (2 LEDs)
+  • Freq G (146Hz)   : D1+D2+D3          (3 LEDs)
 
 Indicateur batterie :
   • > 3.7V : Vert stable
@@ -419,12 +431,12 @@ Indicateur batterie :
 │              │ VOUT    │ 3.3V → ATmega328P VCC                          │
 │              │ GND     │ GND commun                                     │
 ├──────────────┼─────────┼────────────────────────────────────────────────┤
-│ PCF8574      │ SDA     │ ATmega328P PC4 + pull-up 4.7kΩ → VCC          │
+│ PCF8574A     │ SDA     │ ATmega328P PC4 + pull-up 4.7kΩ → VCC          │
 │ (I2C LED)    │ SCL     │ ATmega328P PC5 + pull-up 4.7kΩ → VCC          │
-│              │ P0-P2   │ LED R, G, B (via 470Ω → GND)                   │
+│              │ P0-P2   │ LED D1, D2, D3 (via 470Ω, ACTIVE-HIGH)          │
 │              │ VCC     │ 3.3V                                           │
 │              │ GND     │ GND commun                                     │
-│              │ A0-A2   │ GND (adresse 0x20)                             │
+│              │ A0-A2   │ GND (adresse 0x38 pour PCF8574A)                │
 ├──────────────┼─────────┼────────────────────────────────────────────────┤
 │ LED          │ Anode   │ ATmega328P PD3 via [47Ω]                       │
 │ NSPW500CS    │ Cathode │ GND direct                                     │
@@ -556,6 +568,41 @@ FABRICATION :
   ☐ Commander LEDs NSPW500CS séparément (lot 10-20 pour tests)
 
 ═══════════════════════════════════════════════════════════════════════════════
+ ⚠️ NOTES PCBA - RETOUR D'EXPÉRIENCE (Mars 2026)
+═══════════════════════════════════════════════════════════════════════════════
+
+Les points suivants ont été découverts lors du premier assemblage PCBA :
+
+1. PCF8574A vs PCF8574 :
+   Le PCBA utilise un PCF8574A (variante "A") avec adresse I2C de base 0x38
+   (A0=A1=A2=GND). Le PCF8574 standard (sans "A") a une adresse de base 0x20.
+   → Code flash version corrigé : PCF8574_ADDRESS = 0x38
+
+2. LEDs Indicateurs ACTIVE-HIGH :
+   Les 3 LEDs indicatrices (D1, D2, D3) sont toutes ROUGES et câblées en
+   ACTIVE-HIGH : écrire 1 sur le port PCF8574A = LED allumée.
+   → Code flash version corrigé : freqIndicators[] en active-HIGH
+
+3. Oscillateur interne RC 8MHz :
+   Le PCBA n'a PAS de cristal externe. L'ATmega328P fonctionne sur son
+   oscillateur interne RC calibré à 8MHz (lfuse=0xE2).
+   → Suffisamment précis pour Timer2 PWM et I2C 100kHz.
+
+4. Fuses réels brûlés sur PCBA :
+   lfuse = 0xE2 (oscillateur interne RC 8MHz, CKDIV8 désactivé)
+   hfuse = 0xD9 (no bootloader, EESAVE off)
+   efuse = 0xFF (BOD désactivé)
+
+5. Programmation via USBasp (recommandé) :
+   L'Arduino-as-ISP s'est révélé peu fiable (problèmes d'auto-reset).
+   Le USBasp est fortement recommandé. Jumper JP1 (slow clock) nécessaire
+   pour un chip neuf (1MHz par défaut avec CKDIV8 activé en usine).
+
+6. VCC Pins TQFP-32 :
+   Sur le package TQFP-32, les pins VCC sont 4 et 6 (PAS pin 7 comme
+   en DIP-28). GND est sur pins 3, 5 et 21.
+
+═══════════════════════════════════════════════════════════════════════════════
  🎓 RÉSUMÉ DES CHANGEMENTS v6.0 → v7.0
 ═══════════════════════════════════════════════════════════════════════════════
 
@@ -578,8 +625,8 @@ LOGICIEL :
   ✅ Batterie LiPo 900mAh conservée
   ✅ Chargeur TP4056 conservé
   ✅ LDO HT7333-A conservé
-  ✅ PCF8574 I2C conservé
-  ✅ LED indicateurs RGB conservés
+  ✅ PCF8574A I2C conservé (adresse 0x38 sur PCBA, 0x20 sur breadboard)
+  ✅ LED indicateurs 3× rouges conservés (active-HIGH sur PCBA)
   ✅ Boutons tactiles conservés
 
 PCB :

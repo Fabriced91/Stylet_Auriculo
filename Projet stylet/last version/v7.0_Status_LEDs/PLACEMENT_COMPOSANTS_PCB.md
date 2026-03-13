@@ -33,13 +33,13 @@
 |-----------|-----------|--------|--------|----------|-------|-------|
 | **SW2** | Bouton FREQ 6×6mm | 15.0 | 8.0 | 0° | Top | **Centré axe** |
 | **SW3** | Bouton MODE 6×6mm | 22.0 | 8.0 | 0° | Top | **Centré axe** |
-| **LED1** | LED Rouge 5mm | 14.0 | 4.0 | 0° | Top | **Excentrée** Y-4mm, anode vers haut |
-| **LED2** | LED Verte 5mm | 18.0 | 4.0 | 0° | Top | **Excentrée** Y-4mm |
-| **LED3** | LED Bleue 5mm | 22.0 | 4.0 | 0° | Top | **Excentrée** Y-4mm |
-| **R5** | 470Ω (LED Rouge) | 14.0 | 12.0 | 90° | Bottom | Sous PCF8574 si place manque |
-| **R6** | 470Ω (LED Verte) | 18.0 | 12.0 | 90° | Bottom | Idem |
-| **R7** | 470Ω (LED Bleue) | 22.0 | 12.0 | 90° | Bottom | Idem |
-| **U3** | PCF8574 SOIC-16 | 18.0 | 12.0 | 0° | Top | Pin 1 en haut-gauche |
+| **LED1** | LED Rouge D1 5mm | 14.0 | 4.0 | 0° | Top | **Excentrée** Y-4mm, anode vers haut |
+| **LED2** | LED Rouge D2 5mm | 18.0 | 4.0 | 0° | Top | **Excentrée** Y-4mm |
+| **LED3** | LED Rouge D3 5mm | 22.0 | 4.0 | 0° | Top | **Excentrée** Y-4mm |
+| **R5** | 470Ω (LED D1) | 14.0 | 12.0 | 90° | Bottom | Sous PCF8574A si place manque |
+| **R6** | 470Ω (LED D2) | 18.0 | 12.0 | 90° | Bottom | Idem |
+| **R7** | 470Ω (LED D3) | 22.0 | 12.0 | 90° | Bottom | Idem |
+| **U3** | PCF8574A SOIC-16 | 18.0 | 12.0 | 0° | Top | Addr 0x38, pin 1 en haut-gauche |
 
 **Alignements** :
 - **Boutons** : Y = 8.0mm (axe central) ← **Important !**
@@ -99,11 +99,11 @@
 ```
         Y
         ↑
-   16mm │                        ┌────────── LEDs RGB excentrées (Y=4mm)
+   16mm │                        ┌────────── LEDs rouges excentrées (Y=4mm)
         │  ●●●                   │
         │                        │   ┌────── Boutons centrés (Y=8mm)
     12mm│      ┌───────┐        ││   ●●
-        │      │PCF8574│         ││
+        │      │PCF8574A│         ││
         │                    ┌───────────┐
      8mm├──●──●────────────────ATmega328P│────────●─────●──→ X
         │  SW SW              └───────────┘        R8   LED4
