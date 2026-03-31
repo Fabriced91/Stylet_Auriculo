@@ -10,10 +10,11 @@
  *    - ADC VREF = 3.3V (VCC)
  *    - Serial 57600 baud (fiable à 8MHz)
  *    - Diagnostics breadboard retirés
+ *    - Ajustement fréquences ±30% (menu OLED, sauvegardé EEPROM)
  * 
  *  📋 FRÉQUENCES DE NOGIER (1956) :
  *    A : 2.28 Hz  │ B : 4.56 Hz  │ C : 9.12 Hz  │ D : 18.25 Hz
- *    E : 36.50 Hz │ F : 73.00 Hz │ G : 146.00 Hz
+ *    E : 36.50 Hz │ F : 73.00 Hz │ G : 146.00 Hz │ L : 276.00 Hz
  * 
  *  🎨 MODES :
  *    - DÉTECTION  : LED faible (5mA, 25% duty) + modulation optionnelle
@@ -34,7 +35,7 @@
  * 
  *  ⚡ PROGRAMMATION :
  *    - Via ISP (USBasp ou Arduino as ISP)
- *    - Fuses : 8MHz external crystal, BOD 2.7V
+ *    - Fuses : 8MHz internal oscillator, BOD 2.7V
  * 
  *  Auteur  : Fabrice Deconynck
  *  Date    : Mars 2026
@@ -72,9 +73,10 @@ const float frequencies[] = {
   18.25,  // D - Fréquence circulatoire
   36.50,  // E - Fréquence psychique
   73.00,  // F - Fréquence dégénérescence
-  146.00  // G - Fréquence séquentielle
+  146.00, // G - Fréquence séquentielle
+  276.00  // L - Fréquence universelle
 };
-const char freqNames[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G'};
+const char freqNames[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'L'};
 
 // ═══ Mesure batterie (standalone : ATmega328P-AU @ 3.3V, batterie Li-Ion) ═══
 // VREF = VCC = 3.3V (sortie LDO MCP1700T)
@@ -106,7 +108,7 @@ const uint8_t modeDutyCycles[MODE_COUNT] = {
 };
 
 // ═══ État du système ═══
-volatile uint8_t currentFreq = 0;       // Index fréquence actuelle (0-6)
+volatile uint8_t currentFreq = 0;       // Index fréquence actuelle (0-7)
 volatile uint8_t currentMode = MODE_DETECTION;
 volatile bool btnFreqPressed = false;
 volatile bool btnModePressed = false;
@@ -115,6 +117,11 @@ volatile bool btnMenuPressed = false;
 // ⭐ Modulation
 bool modulationEnabled = true;          // Modulation ON/OFF
 const float MODULATION_DEPTH = 0.70;    // Profondeur 70%
+
+// ⭐ Ajustement fréquences (±30%)
+uint8_t freqAdjustIndex = 1;            // 0=-30%, 1=Défaut, 2=+30%
+const float freqMultipliers[] = {0.70, 1.00, 1.30};
+const char* freqAdjustLabels[] = {"-30%", "Defaut", "+30%"};
 
 // ⭐ Menu OLED
 enum MenuState {
@@ -153,6 +160,7 @@ const uint16_t BATTERY_CHECK_INTERVAL = 5000;
 // EEPROM addresses
 const uint8_t EEPROM_ADDR_MODULATION = 0;
 const uint8_t EEPROM_ADDR_TIMER_TENS = 1;   // Stocké en dizaines de secondes (3=30s, 6=60s...)
+const uint8_t EEPROM_ADDR_FREQ_ADJUST = 2;  // Index ajustement fréquence (0/1/2)
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  SETUP
@@ -210,6 +218,7 @@ void setup() {
   Serial.print(F(" (")); Serial.print(frequencies[currentFreq]); Serial.println(F(" Hz)"));
   Serial.print(F("Mode: ")); Serial.println(modeNames[currentMode]);
   Serial.print(F("Modulation: ")); Serial.println(modulationEnabled ? F("ON") : F("OFF"));
+  Serial.print(F("Freq Adjust: ")); Serial.println(freqAdjustLabels[freqAdjustIndex]);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -266,11 +275,16 @@ void loop() {
 //  CALCUL PWM AVEC MODULATION
 // ═══════════════════════════════════════════════════════════════════════════
 
+// Helper : fréquence ajustée selon réglage utilisateur (±30%)
+float getAdjustedFreq() {
+  return frequencies[currentFreq] * freqMultipliers[freqAdjustIndex];
+}
+
 uint8_t calculateModulatedPWM() {
   // Formule : PWM = duty_moyen ± (amplitude × sin(2π × freq_nogier × t))
   
   float timeSeconds = millis() / 1000.0;
-  float freqNogier = frequencies[currentFreq];
+  float freqNogier = getAdjustedFreq();
   uint8_t baseDuty = modeDutyCycles[currentMode];
   
   // Amplitude de modulation (70% de la plage disponible)
@@ -351,8 +365,12 @@ void drawMainScreen() {
   display.print(F("Freq: "));
   display.print(freqNames[currentFreq]);
   display.print(F(" "));
-  display.print(frequencies[currentFreq], 1);
+  display.print(getAdjustedFreq(), 1);
   display.print(F("Hz"));
+  if (freqAdjustIndex != 1) {
+    display.print(F(" "));
+    display.print(freqAdjustLabels[freqAdjustIndex]);
+  }
   
   // Ligne 4 (Y=24) : Timer si actif
   if (timerEnabled && timerSeconds > 0) {
@@ -370,33 +388,47 @@ void drawMainScreen() {
 
 void drawConfigMenu() {
   display.setTextSize(1);
-  display.setCursor(0, 0);
   
-  // Option 1 : Modulation
-  if (menuSelection == 0) display.print(F(">"));
-  else display.print(F(" "));
-  display.print(F(" Modulation: "));
-  display.println(modulationEnabled ? F("ON") : F("OFF"));
+  // 5 options avec défilement (4 lignes visibles sur OLED 128×32)
+  const uint8_t MENU_ITEMS = 5;
+  uint8_t scrollOffset = 0;
+  if (menuSelection > 3) scrollOffset = menuSelection - 3;
   
-  // Option 2 : Timer
-  display.setCursor(0, 8);
-  if (menuSelection == 1) display.print(F(">"));
-  else display.print(F(" "));
-  display.print(F(" Timer: "));
-  display.print(timerSetSeconds);
-  display.println(F("s"));
+  for (uint8_t i = 0; i < 4; i++) {
+    uint8_t idx = scrollOffset + i;
+    if (idx >= MENU_ITEMS) break;
+    
+    display.setCursor(0, i * 8);
+    display.print(idx == menuSelection ? F(">") : F(" "));
+    
+    switch (idx) {
+      case 0:
+        display.print(F(" Modul: "));
+        display.print(modulationEnabled ? F("ON") : F("OFF"));
+        break;
+      case 1:
+        display.print(F(" Freq: "));
+        display.print(freqAdjustLabels[freqAdjustIndex]);
+        break;
+      case 2:
+        display.print(F(" Timer: "));
+        display.print(timerSetSeconds);
+        display.print(F("s"));
+        break;
+      case 3:
+        display.print(F(" About"));
+        break;
+      case 4:
+        display.print(F(" Retour"));
+        break;
+    }
+  }
   
-  // Option 3 : About
-  display.setCursor(0, 16);
-  if (menuSelection == 2) display.print(F(">"));
-  else display.print(F(" "));
-  display.println(F(" About"));
-  
-  // Option 4 : Retour
-  display.setCursor(0, 24);
-  if (menuSelection == 3) display.print(F(">"));
-  else display.print(F(" "));
-  display.print(F(" Retour"));
+  // Indicateur défilement si items cachés en bas
+  if (scrollOffset + 4 < MENU_ITEMS) {
+    display.setCursor(122, 24);
+    display.print(F("v"));
+  }
 }
 
 void drawTimerSetScreen() {
@@ -437,7 +469,7 @@ void handleButtons() {
     wakeDisplay();
     
     if (menuState == MENU_MAIN_DISPLAY) {
-      currentFreq = (currentFreq + 1) % 7;
+      currentFreq = (currentFreq + 1) % 8;
       Serial.print(F("Freq: ")); Serial.println(freqNames[currentFreq]);
     } else if (menuState == MENU_TIMER_SET) {
       timerSetSeconds += 10;
@@ -459,7 +491,7 @@ void handleButtons() {
       currentMode = (currentMode + 1) % MODE_COUNT;
       Serial.print(F("Mode: ")); Serial.println(modeNames[currentMode]);
     } else if (menuState == MENU_CONFIG) {
-      menuSelection = (menuSelection + 1) % 4;  // 4 options: Modulation, Timer, About, Retour
+      menuSelection = (menuSelection + 1) % 5;  // 5 options: Modul, Freq, Timer, About, Retour
     } else if (menuState == MENU_TIMER_SET) {
       timerSeconds = timerSetSeconds;
       timerEnabled = true;
@@ -490,12 +522,16 @@ void handleButtons() {
         modulationEnabled = !modulationEnabled;
         saveConfig();
       } else if (menuSelection == 1) {
+        // Freq Adjust: cycle -30% / Defaut / +30%
+        freqAdjustIndex = (freqAdjustIndex + 1) % 3;
+        saveConfig();
+      } else if (menuSelection == 2) {
         // Timer: ouvrir config
         menuState = MENU_TIMER_SET;
-      } else if (menuSelection == 2) {
+      } else if (menuSelection == 3) {
         // About: afficher
         menuState = MENU_ABOUT;
-      } else if (menuSelection == 3) {
+      } else if (menuSelection == 4) {
         // Retour: ecran principal
         menuState = MENU_MAIN_DISPLAY;
       }
@@ -582,7 +618,8 @@ void wakeDisplay() {
 
 void saveConfig() {
   EEPROM.write(EEPROM_ADDR_MODULATION, modulationEnabled ? 1 : 0);
-  EEPROM.write(EEPROM_ADDR_TIMER_TENS, timerSetSeconds / 10);  // Stocké en dizaines de sec
+  EEPROM.write(EEPROM_ADDR_TIMER_TENS, timerSetSeconds / 10);
+  EEPROM.write(EEPROM_ADDR_FREQ_ADJUST, freqAdjustIndex);
 }
 
 void loadConfig() {
@@ -594,5 +631,10 @@ void loadConfig() {
   uint8_t timerTens = EEPROM.read(EEPROM_ADDR_TIMER_TENS);
   if (timerTens >= 1 && timerTens <= 30) {  // 10s à 300s
     timerSetSeconds = timerTens * 10;
+  }
+  
+  uint8_t freqAdj = EEPROM.read(EEPROM_ADDR_FREQ_ADJUST);
+  if (freqAdj <= 2) {
+    freqAdjustIndex = freqAdj;
   }
 }
