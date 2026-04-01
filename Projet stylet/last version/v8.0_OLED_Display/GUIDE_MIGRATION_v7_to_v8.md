@@ -12,12 +12,18 @@ Ce guide détaille toutes les étapes pour migrer votre projet KiCad de la versi
 
 | Composant | v7.0 | v8.0 | Action |
 |-----------|------|------|--------|
+| **PCB** | 16×70mm | 16×55mm | 🔧 Nouveau PCB (-21%) |
+| **PCF8574 (U2)** | Présent | Supprimé | ❌ Retirer |
+| **LEDs RGB (D2-D4)** | 3× 0805 | Supprimées | ❌ Retirer |
+| **R3-R5 (470Ω)** | 3× 0805 | Supprimées | ❌ Retirer |
+| **C2 (100nF)** | 1× 0805 | Supprimé | ❌ Retirer |
 | **Boutons** | 2 (FREQ, MODE) | 3 (FREQ, MODE, MENU) | ➕ Ajouter SW3 |
 | **Connecteurs** | 2 (ISP, Batterie) | 3 (ISP, Batterie, OLED) | ➕ Ajouter J3 |
-| **Affichage** | LEDs RGB uniquement | LEDs RGB + OLED 128×32 | ➕ Ajouter module OLED |
+| **Interrupteur** | Aucun | SW4 ON/OFF | ➕ Ajouter SW4 |
+| **Affichage** | LEDs RGB | OLED 128×32 | ➕ Ajouter module OLED |
 | **Pin PB0** | Non connecté (NC) | Bouton MENU | 🔧 Modifier |
-| **Bus I2C** | 1 périphérique (PCF8574) | 2 périphériques (PCF8574 + OLED) | 🔧 Vérifier pull-ups |
-| **Coût** | 20.88 € | 25.18 € | +4.30 € (+20.6%) |
+| **Bus I2C** | 1 périphérique (PCF8574) | 1 périphérique (OLED) | 🔧 Simplifié |
+| **Coût** | 20.88 € | ~20.74 € | -0.14 € (-0.7%) |
 
 ---
 
@@ -116,7 +122,7 @@ Ordre des pins (de haut en bas) :
 
 ### Étape 1.4 : Vérifier le bus I2C
 
-Le bus I2C doit maintenant connecter **3 composants** :
+Le bus I2C doit maintenant connecter **2 composants** (au lieu de 3 en v7.0) :
 
 ```
         +3.3V
@@ -127,16 +133,16 @@ Le bus I2C doit maintenant connecter **3 composants** :
     │            │
     SDA          SCL
     │            │
-    ├────────────┼──────────────────┐
-    │            │                  │
-  U1 PC4       U1 PC5            U2 pins
-  (pin 27)     (pin 28)         SDA/SCL
-    │            │              (pins 15/14)
+    ├────────────┐
+    │            │
+  U1 PC4       U1 PC5
+  (pin 27)     (pin 28)
+    │            │
     └────────────┴──────────────┐
-                                │
-                              J3 pins
-                              SDA/SCL
-                              (pins 4/3)
+                              │
+                            J3 pins
+                            SDA/SCL
+                            (pins 4/3)
 ```
 
 **Vérifications :**
@@ -144,6 +150,7 @@ Le bus I2C doit maintenant connecter **3 composants** :
 - ✅ R2b (4.7kΩ) connecté entre SCL et +3.3V
 - ✅ Tous les SDA connectés au même net
 - ✅ Tous les SCL connectés au même net
+- ✅ U2 PCF8574 RETIRÉ du schéma (plus de connexion I2C vers U2)
 
 ### Étape 1.5 : Mettre à jour les annotations
 
@@ -257,7 +264,7 @@ Les nouveaux composants apparaissent **en dehors du PCB** (zone grise).
 3. Tracer jusqu'au net correspondant
 4. Utiliser **vias** si changement de couche nécessaire
 
-💡 **Astuce** : Pour SCL/SDA, chercher les pistes existantes vers U2 (PCF8574) et se connecter dessus.
+💡 **Astuce** : Pour SCL/SDA, les pistes vont directement de U1 vers J3 (pas de branchement U2).
 
 ### Étape 2.5 : Mettre à jour les zones de cuivre (GND)
 
@@ -384,7 +391,7 @@ last version/
   ├── stylet_auriculo_ATmega328P_v8.0.ino       [✅ CRÉÉ]
   ├── RESUME_EXECUTIF_v8.0.txt                  [✅ CRÉÉ]
   ├── GUIDE_MIGRATION_v7_to_v8.md               [📖 CE FICHIER]
-  └── guide_pcb_layout_16x70mm_v8.0.txt         [À CRÉER]
+  └── guide_pcb_layout_16x55mm_v8.0.txt         [✅ CRÉÉ]
 ```
 
 ### Étape 4.2 : Ajouter notes de version
@@ -479,10 +486,9 @@ Arduino Uno → Boutons
 
 **Ordre soudure :**
 1. Composants SMD (si pas PCBA JLCPCB)
-2. Cristal Y1
-3. Connecteurs J1, J2, **J3**
-4. Boutons SW1, SW2, **SW3**
-5. LED principale D1
+2. Connecteurs J1, J2, **J3**
+3. Boutons SW1, SW2, **SW3**
+4. LED principale D1
 
 **Outils nécessaires :**
 - Fer à souder 350°C
@@ -496,7 +502,7 @@ Arduino Uno → Boutons
 1. **Installer bootloader ATmega328P :**
    ```bash
    # Via USBasp ou Arduino as ISP
-   avrdude -c usbasp -p m328p -U lfuse:w:0xFF:m -U hfuse:w:0xDA:m -U efuse:w:0xFD:m
+   avrdude -c usbasp -p m328p -U lfuse:w:0xE2:m -U hfuse:w:0xD3:m -U efuse:w:0xFD:m
    ```
 
 2. **Uploader code v8.0 :**
@@ -511,8 +517,8 @@ Arduino Uno → Boutons
    ```
    ✅ Affichage OLED au démarrage
    ✅ Batterie affichée (%)
-   ✅ LEDs RGB changent (FREQ)
-   ✅ Modes changent (MODE)
+   ✅ Fréquence change (FREQ) — affiché sur OLED
+   ✅ Modes changent (MODE) — affiché sur OLED
    ✅ Menu s'ouvre (MENU)
    ✅ Timer configurable
    ✅ Modulation visible oscilloscope
@@ -547,7 +553,7 @@ Arduino Uno → Boutons
      }
    }
    ```
-   - Doit afficher : `0x20` (PCF8574) et `0x3C` (OLED)
+   - Doit afficher : `0x3C` (OLED)
 
 3. OLED défectueux
    - **Solution :** Tester sur Arduino Uno séparément
@@ -577,17 +583,13 @@ Arduino Uno → Boutons
 **Diagnostic :**
 ```cpp
 // Scanner I2C doit afficher :
-// Device at 0x20  ← PCF8574
 // Device at 0x3C  ← OLED
 ```
-
-**Si 0x20 absent :**
-- Vérifier soudure PCF8574 (SOIC-16)
-- Vérifier pins A0/A1/A2 à GND
 
 **Si 0x3C absent :**
 - Vérifier câble OLED
 - Vérifier tension VCC (doit être 3.3V)
+- Vérifier pull-ups I2C (R2a/R2b)
 
 ### Problème 4 : Consommation excessive
 
@@ -603,9 +605,9 @@ Arduino Uno → Boutons
    - Compromis : désactiver modulation via menu
 
 **Consommation normale v8.0 :**
-- Détection OLED ON : 26.5mA
-- Détection OLED OFF : 11.5mA
-- Traitement OLED ON : 41.5mA
+- Détection OLED ON : 24mA
+- Détection OLED OFF : 9mA
+- Traitement OLED ON : 39mA
 
 ---
 
@@ -618,7 +620,8 @@ Arduino Uno → Boutons
 - [ ] SW3 ajouté et connecté à PB0
 - [ ] J3 ajouté avec 4 pins (GND/VCC/SCL/SDA)
 - [ ] PB0 n'a plus de flag NC
-- [ ] Bus I2C connecte 3 composants (U1/U2/J3)
+- [ ] Bus I2C connecte 2 composants (U1/J3)
+- [ ] U2 PCF8574 RETIRÉ du schéma
 - [ ] Pull-ups I2C présents (R2a, R2b = 4.7kΩ)
 - [ ] Zones GND refilled (englobent SW3/J3)
 - [ ] Gerbers générés (9 fichiers .gbr + .drl)
@@ -628,7 +631,6 @@ Arduino Uno → Boutons
 ### Avant assemblage
 
 - [ ] Composants SMD soudés (ou PCBA JLCPCB)
-- [ ] Cristal Y1 soudé
 - [ ] Boutons SW1/SW2/SW3 soudés
 - [ ] Connecteurs J1/J2/J3 soudés
 - [ ] LED D1 soudée (polarité respectée)
@@ -638,7 +640,7 @@ Arduino Uno → Boutons
 
 - [ ] Bibliothèques Arduino installées (Adafruit GFX + SSD1306)
 - [ ] Code v8.0 compilé sans erreur
-- [ ] Fuses ATmega328P configurés (8MHz cristal)
+- [ ] Fuses ATmega328P configurés (8MHz interne)
 - [ ] Programmateur ISP prêt (USBasp ou Arduino as ISP)
 
 ### Avant test final
@@ -646,7 +648,7 @@ Arduino Uno → Boutons
 - [ ] OLED connecté via câble J3 (ordre pins vérifié)
 - [ ] Batterie Li-Ion connectée (polarité vérifiée)
 - [ ] Multimètre : tension +3.3V stable
-- [ ] Scanner I2C détecte 0x20 et 0x3C
+- [ ] Scanner I2C détecte 0x3C
 
 ---
 

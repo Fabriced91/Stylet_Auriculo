@@ -35,7 +35,7 @@
  * 
  *  ⚡ PROGRAMMATION :
  *    - Via ISP (USBasp ou Arduino as ISP)
- *    - Fuses : 8MHz internal oscillator, BOD 2.7V
+ *    - Fuses : Low=0xE2 (8MHz RC), High=0xD3 (no bootloader, EEPROM preserved), Ext=0xFD (BOD 2.7V)
  * 
  *  Auteur  : Fabrice Deconynck
  *  Date    : Mars 2026

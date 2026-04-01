@@ -9,9 +9,16 @@
   ✅ Écran OLED SSD1306 128×32 I2C (adresse 0x3C)
   ✅ Connecteur JST-4 pour câble OLED
   ✅ Bouton MENU supplémentaire (PB0/D8)
-  ✅ Interface I2C partagée (PCF8574 + OLED)
   ✅ Modulation fréquences Nogier réactivée
   ✅ 🆕 Interrupteur ON/OFF (SW4) coupure batterie — 0µA OFF
+  ✅ 🆕 PCB réduit à 16×55mm (suppression PCF8574 + LEDs RGB)
+
+🔧 SUPPRESSIONS v8.0 (par rapport à v7.0) :
+  ❌ U2 PCF8574T (expandeur I2C) — remplacé par affichage OLED
+  ❌ D2, D3, D4 (LEDs RGB indicatrices) — info sur OLED
+  ❌ R3, R4, R5 (résistances 470Ω LEDs RGB)
+  ❌ C2 (condensateur découplage U2)
+  ❌ Y1, C5, C6 (cristal + condensateurs — horloge interne 8MHz)
 
 ══════════════════════════════════════════════════════════════════════════════
   📋 SYNOPTIQUE GÉNÉRAL
@@ -86,27 +93,8 @@ NOTES :
   - AREF : condensateur 100nF pour stabilisation
   - Tous les pins NC marqués avec flag "No Connect" dans KiCad
 
-
-══════════════════════════════════════════════════════════════════════════════
- 1  | A0    | Adresse I2C bit 0         | GND (adresse 0x20)
- 2  | A1    | Adresse I2C bit 1         | GND (adresse 0x20)
- 3  | A2    | Adresse I2C bit 2         | GND (adresse 0x20)
- 4  | P0    | Sortie 0                  | LED Rouge (via R3 470Ω)
- 5  | P1    | Sortie 1                  | LED Verte (via R4 470Ω)
- 6  | P2    | Sortie 2                  | LED Bleue (via R5 470Ω)
- 7  | P3    | Sortie 3                  | ⚠️ Non connecté (flag NC)
- 8  | VSS   | Masse                     | GND
- 9  | P4    | Sortie 4                  | ⚠️ Non connecté (flag NC)
-10  | P5    | Sortie 5                  | ⚠️ Non connecté (flag NC)
-11  | P6    | Sortie 6                  | ⚠️ Non connecté (flag NC)
-12  | P7    | Sortie 7                  | ⚠️ Non connecté (flag NC)
-13  | INT   | Interruption (active LOW) | ⚠️ Non connecté (flag NC)
-14  | SCL   | I2C Clock                 | SCL (bus I2C, pull-up 4.7kΩ)
-15  | SDA   | I2C Data                  | SDA (bus I2C, pull-up 4.7kΩ)
-16  | VDD   | Alimentation              | +3.3V (via C2 100nF)
-
-CONFIGURATION ADRESSE :
-  A0=A1=A2=GND → Adresse I2C = 0x20 (0100000 en binaire)
+  ❌ U2 (PCF8574T) SUPPRIMÉ en v8.0 : l'expandeur I2C n'est plus nécessaire,
+     les LEDs RGB d'indication sont remplacées par l'affichage OLED.
 
 
 ══════════════════════════════════════════════════════════════════════════════
@@ -201,11 +189,9 @@ D1 - LED Nichia NSPW500CS
        → Détection : 25% = 5mA
        → Traitement: 92% = 20mA
 
-
-══════════════════════════════════════════════════════════════════════════════
-  🎨 LEDS RGB (Indicateurs fréquence)
-══════════════════════════════════════════════════════════════════════════════
-
+  ❌ LEDs RGB (D2, D3, D4) SUPPRIMÉES en v8.0 :
+     Les indicateurs de fréquence sont désormais affichés sur l'écran OLED.
+     R3, R4, R5 (470Ω) également supprimées.
 
 
 ══════════════════════════════════════════════════════════════════════════════
@@ -273,16 +259,15 @@ CALCUL RÉSISTANCE PULL-UP :
   Avec :
     - Vcc = 3.3V
     - Vol = 0.4V (tension LOW I2C standard)
-    - Isink = 3mA par périphérique × 2 = 6mA
+    - Isink = 3mA par périphérique × 1 = 3mA (OLED seul)
     
-  R_pullup_min = (3.3 - 0.4) / 0.006 = 483Ω  → Sécurité : 2.2kΩ OK
+  R_pullup_min = (3.3 - 0.4) / 0.003 = 967Ω  → Sécurité : 2.2kΩ OK
   R_pullup_max = 1000 / (400pF × 100kHz) = 25kΩ  → 4.7kΩ OK
   
   Valeur choisie : 4.7kΩ (standard I2C, fréquence 100kHz)
 
 PÉRIPHÉRIQUES I2C :
-  1. PCF8574T  @ 0x20 (U2)
-  2. 🆕 OLED SSD1306 @ 0x3C (J3) - NOUVEAU v8.0
+  1. OLED SSD1306 @ 0x3C (J3)
 
 
 ══════════════════════════════════════════════════════════════════════════════
@@ -305,9 +290,10 @@ PIN | NOM   | FONCTION                  | CONNEXION
   - Tension : 3.3V obligatoire (pas 5V !)
   - Fuses : 
       Low  : 0xE2 (8MHz internal RC oscillator, no CKDIV8)
-      High : 0xDA (SPI enabled, boot 2048 words)
+      High : 0xD3 (SPI enabled, no bootloader, EEPROM preserved)
       Ext  : 0xFD (BOD 2.7V)
-  ⚠️ NOTE : Même configuration fuses que v7.0 (horloge interne)
+  ⚠️ NOTE : BOOTRST=1 (pas de bootloader, reset vers application)
+  ⚠️ NOTE : EESAVE=0 (EEPROM préservée lors chip erase/reflash)
 
 
 ══════════════════════════════════════════════════════════════════════════════
@@ -319,10 +305,7 @@ C1 - 100nF (ATmega328P VCC pin 4)
   Pin 2 : GND
   Boîtier : 0805
 
-C2 - 100nF (PCF8574 VDD pin 16)
-  Pin 1 : VDD (+3.3V)
-  Pin 2 : VSS (GND)
-  Boîtier : 0805
+C2 - SUPPRIMÉ (PCF8574 retiré en v8.0)
 
 C3 - 100nF (ATmega328P AREF pin 20)
   Pin 1 : AREF
@@ -360,17 +343,16 @@ RÈGLES DE PLACEMENT :
   Connecté à :
     - U1 VCC (pins 4, 6)
     - U1 AVCC (pin 18)
-    - U2 VDD (pin 16)
     - J1 VCC (pin 2)
-    - 🆕 J3 VCC (pin 2) - OLED
+    - J3 VCC (pin 2) - OLED
     - R2a, R2b (pull-ups I2C)
     - D1 anode
     - C1, C4, C7, C8 (découplages)
 
 VBAT : Tension batterie non régulée (3.7V)
   Connecté à :
-    - J2 Pin 1 → 🆕 SW4 COM (via interrupteur)
-    - 🆕 SW4 NO → distribution circuit
+    - J2 Pin 1 → SW4 COM (via interrupteur)
+    - SW4 NO → distribution circuit
     - U3 VIN (pin 3)
     - R8 (diviseur batterie)
     - C7 (condensateur LDO entrée)
@@ -380,21 +362,19 @@ GND : Masse commune
     - Tous les pins GND des composants
     - J1 GND (pin 6)
     - J2 GND (pin 2)
-    - 🆕 J3 GND (pin 1) - OLED
+    - J3 GND (pin 1) - OLED
     - Plan de masse (zones cuivre F.Cu + B.Cu)
 
 SDA : I2C Data
   Connecté à :
     - U1 PC4 (pin 27)
-    - U2 SDA (pin 15)
-    - 🆕 J3 SDA (pin 4) - OLED
+    - J3 SDA (pin 4) - OLED
     - R2a (pull-up 4.7kΩ)
 
 SCL : I2C Clock
   Connecté à :
     - U1 PC5 (pin 28)
-    - U2 SCL (pin 14)
-    - 🆕 J3 SCL (pin 3) - OLED
+    - J3 SCL (pin 3) - OLED
     - R2b (pull-up 4.7kΩ)
 
 LED_MAIN : Commande LED principale (PWM)
@@ -424,8 +404,13 @@ VBAT_SENSE : Mesure tension batterie
 
 
 ══════════════════════════════════════════════════════════════════════════════
-  📐 CONTRAINTES PCB (16×70mm)
+  📐 CONTRAINTES PCB (16×55mm)
 ══════════════════════════════════════════════════════════════════════════════
+
+DIMENSIONS :
+  - Longueur : 55.0 mm (🆕 réduit vs 70mm v7.0, suppression U2/RGB)
+  - Largeur  : 16.0 mm
+  - Surface  : 880 mm²
 
 COUCHES :
   - 2 couches (F.Cu + B.Cu)
@@ -451,16 +436,19 @@ LARGEUR PISTES :
 PLACEMENT COMPOSANTS :
   Face avant (F.Cu) :
     - U1 (ATmega328P-AU) centré
-    - U2 (PCF8574T) à gauche
-    - U3 (MCP1700T) en haut
-    - LEDs RGB (D2, D3, D4) alignées
+    - U3 (MCP1700T) près connecteur batterie
+    - R1, R2a, R2b, R6, R8, R9 (résistances SMD 0805)
+    - C1, C3, C4, C7, C8 (condensateurs SMD 0805)
+    - J3 (connecteur OLED JST-XH-4)
     - Tous les SMD 0805
 
   Face arrière (B.Cu) :
-    - Boutons SW1, SW2, 🆕 SW3 (traversants)
-    - 🆕 SW4 Interrupteur ON/OFF (traversant)
-    - LED principale D1 (traversant)
-    - Connecteurs J1, J2, 🆕 J3 (traversants)
+    - Boutons SW1, SW2, SW3 (traversants)
+    - SW4 Interrupteur ON/OFF (traversant)
+
+  Traversants (F+B) :
+    - LED principale D1 (5mm TH)
+    - Connecteurs J1 (ISP), J2 (batterie), J3 (OLED)
 
 
 ══════════════════════════════════════════════════════════════════════════════
@@ -495,7 +483,7 @@ AJOUTS SCHÉMATIQUE :
 
 VÉRIFICATIONS ERC :
   ✅ Pas de nouveau "Pin not connected" (PB0 maintenant utilisé)
-  ✅ SDA/SCL bien partagés entre 3 composants (U1, U2, J3)
+  ✅ SDA/SCL partagés entre U1 et J3 (OLED)
   ✅ Pull-ups toujours présents (R2a, R2b)
 
 AJOUTS PCB :
@@ -529,32 +517,28 @@ VÉRIFICATIONS DRC :
 
 DÉTECTION (Mode 1) avec OLED actif :
   - ATmega328P @ 8MHz    : 4mA
-  - PCF8574              : 0.5mA
   - LED principale (25%) : 5mA
-  - LEDs RGB (1 active)  : 2mA
-  - 🆕 OLED SSD1306      : 15mA (actif)
+  - OLED SSD1306         : 15mA (actif)
   - LDO quiescent        : 1.6µA (négligeable)
   ─────────────────────────────────
-  TOTAL DÉTECTION        : 26.5mA  → Autonomie = 2000mAh / 26.5mA ≈ 75h
+  TOTAL DÉTECTION        : 24mA  → Autonomie = 2000mAh / 24mA ≈ 83h
 
-DÉTECTION avec OLED éteint (après 10s) :
-  - Total sans OLED      : 11.5mA → Autonomie = 2000mAh / 11.5mA ≈ 174h
+DÉTECTION avec OLED éteint (après 20s) :
+  - Total sans OLED      : 9mA → Autonomie = 2000mAh / 9mA ≈ 222h
   
   📊 AUTONOMIE MIXTE (70% éteint, 30% allumé) :
-     I_moyen = 0.7 × 11.5 + 0.3 × 26.5 = 16mA
-     Autonomie ≈ 125h (5.2 jours)
+     I_moyen = 0.7 × 9 + 0.3 × 24 = 13.5mA
+     Autonomie ≈ 148h (6.2 jours)
 
 TRAITEMENT (Mode 2) avec OLED actif :
   - ATmega328P          : 4mA
-  - PCF8574             : 0.5mA
   - LED principale (92%): 20mA
-  - LEDs RGB            : 2mA
-  - 🆕 OLED actif       : 15mA
+  - OLED actif          : 15mA
   ─────────────────────────────────
-  TOTAL TRAITEMENT      : 41.5mA  → Autonomie = 2000mAh / 41.5mA ≈ 48h
+  TOTAL TRAITEMENT      : 39mA  → Autonomie = 2000mAh / 39mA ≈ 51h
 
 MODE BLANC avec OLED :
-  - Total               : 31.5mA  → Autonomie = 2000mAh / 31.5mA ≈ 63h
+  - Total               : 29mA  → Autonomie = 2000mAh / 29mA ≈ 69h
 
 
 ══════════════════════════════════════════════════════════════════════════════
@@ -564,7 +548,7 @@ MODE BLANC avec OLED :
 ALIMENTATION :
   ✅ LDO 3.3V avec condensateurs entrée/sortie
   ✅ Diviseur batterie (PC0) pour mesure
-  ✅ Découplages VCC sur tous les ICs (100nF)
+  ✅ Découplages VCC sur U1 (100nF)
   ✅ AVCC découplé séparément
   ✅ 🆕 Interrupteur ON/OFF SW4 sur VBAT (0µA en OFF)
 
@@ -578,14 +562,13 @@ MICROCONTRÔLEUR :
 
 I2C :
   ✅ Pull-ups 4.7kΩ sur SDA/SCL
-  ✅ Bus partagé entre U1, U2, 🆕 J3
-  ✅ Adresses différentes (0x20 vs 0x3C)
+  ✅ Bus I2C : U1 ↔ J3 (OLED @ 0x3C)
+  ✅ 1 seul périphérique I2C (routage simplifié)
 
 INTERFACES :
-  ✅ 3 boutons (FREQ, MODE, 🆕 MENU) + 🆕 SW4 ON/OFF
+  ✅ 3 boutons (FREQ, MODE, MENU) + SW4 ON/OFF
   ✅ LED principale PWM (Timer2)
-  ✅ LEDs RGB via PCF8574
-  ✅ 🆕 Connecteur OLED J3 (JST-4)
+  ✅ Connecteur OLED J3 (JST-4)
 
 SÉCURITÉ :
   ✅ Pas de conflit adresse I2C
@@ -598,11 +581,13 @@ SÉCURITÉ :
 ══════════════════════════════════════════════════════════════════════════════
 
 🎯 MIGRATION v7.0 → v8.0 :
+   - Supprimer U2 (PCF8574), D2-D4 (LEDs RGB), R3-R5, C2
    - Ajouter 1 bouton (SW3)
    - Ajouter 1 connecteur (J3 JST-4)
-   - 🆕 Ajouter 1 interrupteur ON/OFF (SW4 slide switch)
+   - Ajouter 1 interrupteur ON/OFF (SW4 slide switch)
+   - Réduire PCB de 16×70mm à 16×55mm
    - Modifier code firmware (bibliothèque Adafruit_SSD1306)
-   - Routage facilité (I2C déjà disponible)
+   - Routage simplifié (1 seul périphérique I2C)
 
 ⚠️ ATTENTION :
    - Câble OLED : vérifier ordre pins (GND/VCC/SCL/SDA)
