@@ -72,7 +72,7 @@ PIN  | NOM       | FONCTION                    | CONNEXION
  17  | PB5/SCK   | Programmation ISP           | J1 Pin 3
  18  | AVCC      | Alim analogique             | +3.3V (via C4 100nF)
  19  | ADC6      | ⚠️ Non utilisé              | NC (flag NC)
- 20  | AREF      | Référence ADC               | Condensateur C3 100nF → GND
+ 20  | AREF      | Référence ADC               | C3 100nF → GND (OPTIONNEL)
  21  | GND       | Masse                       | GND
  22  | ADC7      | ⚠️ Non utilisé              | NC (flag NC)
  23  | PC0/ADC0  | Mesure tension batterie     | Diviseur R8/R9 (100kΩ/33kΩ)
@@ -81,7 +81,7 @@ PIN  | NOM       | FONCTION                    | CONNEXION
  26  | PC3       | ⚠️ Non connecté             | NC (flag NC)
  27  | PC4/SDA   | I2C Data                    | SDA (OLED)
  28  | PC5/SCL   | I2C Clock                   | SCL (OLED)
- 29  | PC6/RESET | Reset                       | J1 Pin 5 + R6 (10kΩ pull-up)
+ 29  | PC6/RESET | Reset                       | J1 Pin 5 + R6 10kΩ pull-up (OPTIONNEL)
  30  | PD0/RXD   | ⚠️ Non connecté             | NC (flag NC)
  31  | PD1/TXD   | ⚠️ Non connecté             | NC (flag NC)
  32  | PD2/INT0  | Bouton FREQ (interruption)  | SW1 + Pull-up interne
@@ -90,8 +90,8 @@ NOTES :
   - Horloge interne 8MHz (pas de cristal externe, comme v7.0)
   - PB6/PB7 non connectés (flag NC dans KiCad)
   - AVCC et VCC connectés à +3.3V (pas de séparation)
-  - AREF : condensateur 100nF pour stabilisation
-  - Tous les pins NC marqués avec flag "No Connect" dans KiCad
+  - AREF : condensateur 100nF optionnel (stabilisation ADC bruit)
+  - R6 : pull-up RESET optionnel (pull-up interne ~30-60kΩ suffit en usage normal)
 
   ❌ U2 (PCF8574T) SUPPRIMÉ en v8.0 : l'expandeur I2C n'est plus nécessaire,
      les LEDs RGB d'indication sont remplacées par l'affichage OLED.
@@ -170,7 +170,7 @@ SW2 - Bouton MODE (Changement mode)
 
 D1 - LED Nichia NSPW500CS
   Anode  : +3.3V
-  Cathode: PD3 (via R1 100Ω)
+  Cathode: PD3 (via R1 47Ω)
   
   Caractéristiques :
     - CRI : >90 (rendu couleur naturel)
@@ -184,10 +184,11 @@ D1 - LED Nichia NSPW500CS
     If_max = 20mA (traitement)
     R = (Vcc - Vf) / If = (3.3 - 3.2) / 0.020 = 5Ω minimum
     
-    ⚠️ UTILISATION PWM : R1 = 100Ω
+    ⚠️ UTILISATION PWM : R1 = 47Ω
+       → Sécurité si Vf baisse : I = (3.3-3.0)/47 = 6.4mA max
        → Duty cycle ajuste le courant moyen
-       → Détection : 25% = 5mA
-       → Traitement: 92% = 20mA
+       → Détection : 25% duty
+       → Traitement: 92% duty
 
   ❌ LEDs RGB (D2, D3, D4) SUPPRIMÉES en v8.0 :
      Les indicateurs de fréquence sont désormais affichés sur l'écran OLED.
@@ -307,10 +308,12 @@ C1 - 100nF (ATmega328P VCC pin 4)
 
 C2 - SUPPRIMÉ (PCF8574 retiré en v8.0)
 
-C3 - 100nF (ATmega328P AREF pin 20)
+C3 - 100nF (ATmega328P AREF pin 20) — OPTIONNEL
   Pin 1 : AREF
   Pin 2 : GND
   Boîtier : 0805
+  ⚠️ Non monté sur PCB actuel. Impact : bruit ADC légèrement supérieur
+     (~±2-3 LSB). Acceptable pour mesure batterie (seuils larges).
 
 C4 - 100nF (ATmega328P AVCC pin 18)
   Pin 1 : AVCC
@@ -404,13 +407,13 @@ VBAT_SENSE : Mesure tension batterie
 
 
 ══════════════════════════════════════════════════════════════════════════════
-  📐 CONTRAINTES PCB (16×55mm)
+  📐 CONTRAINTES PCB (16×75mm)
 ══════════════════════════════════════════════════════════════════════════════
 
 DIMENSIONS :
-  - Longueur : 55.0 mm (🆕 réduit vs 70mm v7.0, suppression U2/RGB)
+  - Longueur : 75.0 mm
   - Largeur  : 16.0 mm
-  - Surface  : 880 mm²
+  - Surface  : 1200 mm²
 
 COUCHES :
   - 2 couches (F.Cu + B.Cu)
@@ -550,12 +553,13 @@ ALIMENTATION :
   ✅ Diviseur batterie (PC0) pour mesure
   ✅ Découplages VCC sur U1 (100nF)
   ✅ AVCC découplé séparément
+  ⚠️ C3 AREF optionnel (non monté, impact négligeable)
   ✅ 🆕 Interrupteur ON/OFF SW4 sur VBAT (0µA en OFF)
 
 MICROCONTRÔLEUR :
   ✅ Horloge interne 8MHz (pas de cristal, identique v7.0)
   ✅ PB6/PB7 non connectés (flag NC)
-  ✅ RESET avec pull-up 10kΩ
+  ⚠️ R6 RESET pull-up optionnel (pull-up interne suffit en usage normal)
   ✅ Tous pins NC marqués avec flag
   ✅ 🆕 PB0 connecté à SW3 (MENU)
   ✅ ISP connecteur complet
@@ -585,7 +589,7 @@ SÉCURITÉ :
    - Ajouter 1 bouton (SW3)
    - Ajouter 1 connecteur (J3 JST-4)
    - Ajouter 1 interrupteur ON/OFF (SW4 slide switch)
-   - Réduire PCB de 16×70mm à 16×55mm
+   - Réduire PCB de 16×70mm à 16×75mm (plus de place pour boutons)
    - Modifier code firmware (bibliothèque Adafruit_SSD1306)
    - Routage simplifié (1 seul périphérique I2C)
 
