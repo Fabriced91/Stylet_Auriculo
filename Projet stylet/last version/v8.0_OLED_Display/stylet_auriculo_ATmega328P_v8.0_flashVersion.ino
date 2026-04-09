@@ -199,18 +199,17 @@ const char* getFreqAdjLabel(uint8_t idx) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 void setup() {
-  // Configuration des pins
-  pinMode(PIN_LED_MAIN, OUTPUT);
-  digitalWrite(PIN_LED_MAIN, LOW);
-  pinMode(PIN_BTN_FREQ, INPUT_PULLUP);
-  pinMode(PIN_BTN_MODE, INPUT_PULLUP);
-  pinMode(PIN_BTN_MENU, INPUT_PULLUP);
-  pinMode(PIN_BATTERY, INPUT);
-
   // Initialisation série (debug via FTDI si connecté)
   Serial.begin(57600);
   Serial.println(F("\n=== Stylet Auriculotherapie v8.0 (Flash) ==="));
   Serial.println(F("ATmega328P-AU @ 8MHz / 3.3V\n"));
+
+  // Configuration des pins
+  pinMode(PIN_LED_MAIN, OUTPUT);
+  pinMode(PIN_BTN_FREQ, INPUT_PULLUP);
+  pinMode(PIN_BTN_MODE, INPUT_PULLUP);
+  pinMode(PIN_BTN_MENU, INPUT_PULLUP);
+  pinMode(PIN_BATTERY, INPUT);
 
   // Configuration PWM Timer2 pour LED principale
   setupPWM();
@@ -219,10 +218,7 @@ void setup() {
   Wire.begin();
   Wire.setClock(100000);  // 100kHz (safe pour OLED)
 
-  // Attendre stabilisation alimentation LDO (critique en mode batterie)
-  delay(300);
-
-  // Initialisation OLED
+  // Initialisation OLED (pas de delay - laisser le condensateur chargé)
   if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
     Serial.println(F("OLED non detecte !"));
   } else {
