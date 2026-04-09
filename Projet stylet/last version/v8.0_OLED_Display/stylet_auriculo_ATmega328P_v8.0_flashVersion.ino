@@ -245,6 +245,9 @@ void setup() {
   // Affichage initial
   updateDisplay();
 
+  // Initialiser le timer d'interaction APRÈS le setup complet
+  lastInteraction = millis();
+
   Serial.println(F("Systeme initialise"));
   Serial.print(F("Freq: ")); Serial.print(getFreqName(currentFreq));
   Serial.print(F(" (")); Serial.print(getFrequency(currentFreq)); Serial.println(F(" Hz)"));
