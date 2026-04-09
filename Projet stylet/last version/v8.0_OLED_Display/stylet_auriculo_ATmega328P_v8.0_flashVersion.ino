@@ -186,6 +186,9 @@ void setup() {
   Wire.begin();
   Wire.setClock(100000);  // 100kHz (safe pour OLED)
 
+  // Attendre stabilisation alimentation LDO (critique en mode batterie)
+  delay(250);
+
   // Initialisation OLED
   if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
     Serial.println(F("OLED non detecte !"));
