@@ -47,6 +47,7 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <EEPROM.h>
+#include <avr/pgmspace.h>
 
 // ═══ Configuration OLED ═══
 #define SCREEN_WIDTH 128
@@ -66,7 +67,7 @@ const uint8_t PIN_BATTERY  = A0;    // ADC0 (PC0/A0)
 #define PWM_MAX 255                    // 8-bit PWM maximum
 
 // ═══ Fréquences de Nogier (Hz) ═══
-const float frequencies[] = {
+const float frequencies[] PROGMEM = {
   2.28,   // A - Fréquence cellulaire
   4.56,   // B - Fréquence nutritive
   9.12,   // C - Fréquence nerveuse
@@ -76,7 +77,7 @@ const float frequencies[] = {
   146.00, // G - Fréquence séquentielle
   276.00  // L - Fréquence universelle
 };
-const char freqNames[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'L'};
+const char freqNames[] PROGMEM = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'L'};
 
 // ═══ Mesure batterie (standalone : ATmega328P-AU @ 3.3V, batterie Li-Ion) ═══
 // VREF = VCC = 3.3V (sortie LDO MCP1700T)
@@ -94,10 +95,11 @@ enum Mode {
   MODE_COUNT
 };
 
-const char* modeNames[MODE_COUNT] = {
-  "Detection",
-  "Traitement",
-  "Full Spectre"
+const char modeName0[] PROGMEM = "Detection";
+const char modeName1[] PROGMEM = "Traitement";
+const char modeName2[] PROGMEM = "Full Spectre";
+const char* const modeNames[MODE_COUNT] PROGMEM = {
+  modeName0, modeName1, modeName2
 };
 
 // Duty cycles moyens par mode (pour 8-bit PWM : 0-255)
@@ -120,8 +122,11 @@ const float MODULATION_DEPTH = 0.70;    // Profondeur 70%
 
 // ⭐ Ajustement fréquences (±30%)
 uint8_t freqAdjustIndex = 1;            // 0=-30%, 1=Défaut, 2=+30%
-const float freqMultipliers[] = {0.70, 1.00, 1.30};
-const char* freqAdjustLabels[] = {"-30%", "Defaut", "+30%"};
+const float freqMultipliers[] PROGMEM = {0.70, 1.00, 1.30};
+const char freqAdjL0[] PROGMEM = "-30%";
+const char freqAdjL1[] PROGMEM = "Defaut";
+const char freqAdjL2[] PROGMEM = "+30%";
+const char* const freqAdjustLabels[] PROGMEM = {freqAdjL0, freqAdjL1, freqAdjL2};
 
 // ⭐ Menu OLED
 enum MenuState {
@@ -161,6 +166,33 @@ const uint16_t BATTERY_CHECK_INTERVAL = 5000;
 const uint8_t EEPROM_ADDR_MODULATION = 0;
 const uint8_t EEPROM_ADDR_TIMER_TENS = 1;   // Stocké en dizaines de secondes (3=30s, 6=60s...)
 const uint8_t EEPROM_ADDR_FREQ_ADJUST = 2;  // Index ajustement fréquence (0/1/2)
+
+// ═══ Helpers PROGMEM ═══
+// Lire un float depuis PROGMEM
+float getFrequency(uint8_t idx) {
+  float val;
+  memcpy_P(&val, &frequencies[idx], sizeof(float));
+  return val;
+}
+float getFreqMultiplier(uint8_t idx) {
+  float val;
+  memcpy_P(&val, &freqMultipliers[idx], sizeof(float));
+  return val;
+}
+// Lire un char depuis PROGMEM
+char getFreqName(uint8_t idx) {
+  return (char)pgm_read_byte(&freqNames[idx]);
+}
+// Lire un string PROGMEM dans un buffer
+char _pgmBuf[16];
+const char* getModeName(uint8_t idx) {
+  strcpy_P(_pgmBuf, (const char*)pgm_read_ptr(&modeNames[idx]));
+  return _pgmBuf;
+}
+const char* getFreqAdjLabel(uint8_t idx) {
+  strcpy_P(_pgmBuf, (const char*)pgm_read_ptr(&freqAdjustLabels[idx]));
+  return _pgmBuf;
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  SETUP
@@ -217,11 +249,11 @@ void setup() {
   updateDisplay();
 
   Serial.println(F("Systeme initialise"));
-  Serial.print(F("Freq: ")); Serial.print(freqNames[currentFreq]);
-  Serial.print(F(" (")); Serial.print(frequencies[currentFreq]); Serial.println(F(" Hz)"));
-  Serial.print(F("Mode: ")); Serial.println(modeNames[currentMode]);
+  Serial.print(F("Freq: ")); Serial.print(getFreqName(currentFreq));
+  Serial.print(F(" (")); Serial.print(getFrequency(currentFreq)); Serial.println(F(" Hz)"));
+  Serial.print(F("Mode: ")); Serial.println(getModeName(currentMode));
   Serial.print(F("Modulation: ")); Serial.println(modulationEnabled ? F("ON") : F("OFF"));
-  Serial.print(F("Freq Adjust: ")); Serial.println(freqAdjustLabels[freqAdjustIndex]);
+  Serial.print(F("Freq Adjust: ")); Serial.println(getFreqAdjLabel(freqAdjustIndex));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -280,7 +312,7 @@ void loop() {
 
 // Helper : fréquence ajustée selon réglage utilisateur (±30%)
 float getAdjustedFreq() {
-  return frequencies[currentFreq] * freqMultipliers[freqAdjustIndex];
+  return getFrequency(currentFreq) * getFreqMultiplier(freqAdjustIndex);
 }
 
 uint8_t calculateModulatedPWM() {
@@ -358,7 +390,7 @@ void drawMainScreen() {
   // Ligne 2 (Y=8) : Mode + Modulation
   display.setCursor(0, 8);
   display.print(F("Mode: "));
-  display.print(modeNames[currentMode]);
+  display.print(getModeName(currentMode));
   if (!modulationEnabled && currentMode != MODE_WHITE) {
     display.print(F(" [MOD]"));
   }
@@ -366,13 +398,13 @@ void drawMainScreen() {
   // Ligne 3 (Y=16) : Fréquence
   display.setCursor(0, 16);
   display.print(F("Freq: "));
-  display.print(freqNames[currentFreq]);
+  display.print(getFreqName(currentFreq));
   display.print(F(" "));
   display.print(getAdjustedFreq(), 1);
   display.print(F("Hz"));
   if (freqAdjustIndex != 1) {
     display.print(F(" "));
-    display.print(freqAdjustLabels[freqAdjustIndex]);
+    display.print(getFreqAdjLabel(freqAdjustIndex));
   }
   
   // Ligne 4 (Y=24) : Timer si actif
@@ -411,7 +443,7 @@ void drawConfigMenu() {
         break;
       case 1:
         display.print(F(" Freq: "));
-        display.print(freqAdjustLabels[freqAdjustIndex]);
+        display.print(getFreqAdjLabel(freqAdjustIndex));
         break;
       case 2:
         display.print(F(" Timer: "));
@@ -473,7 +505,7 @@ void handleButtons() {
     
     if (menuState == MENU_MAIN_DISPLAY) {
       currentFreq = (currentFreq + 1) % 8;
-      Serial.print(F("Freq: ")); Serial.println(freqNames[currentFreq]);
+      Serial.print(F("Freq: ")); Serial.println(getFreqName(currentFreq));
     } else if (menuState == MENU_TIMER_SET) {
       timerSetSeconds += 10;
       if (timerSetSeconds > 300) timerSetSeconds = 10;  // 10s à 300s (5min)
@@ -492,7 +524,7 @@ void handleButtons() {
     
     if (menuState == MENU_MAIN_DISPLAY) {
       currentMode = (currentMode + 1) % MODE_COUNT;
-      Serial.print(F("Mode: ")); Serial.println(modeNames[currentMode]);
+      Serial.print(F("Mode: ")); Serial.println(getModeName(currentMode));
     } else if (menuState == MENU_CONFIG) {
       menuSelection = (menuSelection + 1) % 5;  // 5 options: Modul, Freq, Timer, About, Retour
     } else if (menuState == MENU_TIMER_SET) {
