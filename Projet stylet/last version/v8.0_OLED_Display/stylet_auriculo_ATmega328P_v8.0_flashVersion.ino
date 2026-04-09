@@ -145,11 +145,6 @@ uint16_t timerSeconds = 0;              // Secondes restantes
 uint16_t timerSetSeconds = 30;          // Durée configurée (secondes, défaut 30s)
 unsigned long timerLastUpdate = 0;
 
-// Gestion écran
-unsigned long lastInteraction = 0;
-bool displayOn = true;
-const unsigned long DISPLAY_TIMEOUT = 20000; // 20s avant extinction
-
 // Anti-rebond boutons (un timer par bouton)
 const uint16_t DEBOUNCE_DELAY = 200;
 unsigned long lastDebounceFreq = 0;
@@ -245,9 +240,6 @@ void setup() {
   // Affichage initial
   updateDisplay();
 
-  // Initialiser le timer d'interaction APRÈS le setup complet
-  lastInteraction = millis();
-
   Serial.println(F("Systeme initialise"));
   Serial.print(F("Freq: ")); Serial.print(getFreqName(currentFreq));
   Serial.print(F(" (")); Serial.print(getFrequency(currentFreq)); Serial.println(F(" Hz)"));
@@ -292,15 +284,9 @@ void loop() {
     updateTimer();
   }
 
-  // Extinction auto écran
-  if (displayOn && (millis() - lastInteraction > DISPLAY_TIMEOUT)) {
-    displayOn = false;
-    display.ssd1306_command(SSD1306_DISPLAYOFF);
-  }
-
-  // Mise à jour affichage si besoin
+  // Mise à jour affichage périodique
   static unsigned long lastDisplayUpdate = 0;
-  if (displayOn && (millis() - lastDisplayUpdate > 500)) {
+  if (millis() - lastDisplayUpdate > 500) {
     lastDisplayUpdate = millis();
     updateDisplay();
   }
@@ -356,7 +342,7 @@ void setupPWM() {
 // ═══════════════════════════════════════════════════════════════════════════
 
 void updateDisplay() {
-  if (!displayOn) return;
+
   
   display.clearDisplay();
   
@@ -500,9 +486,6 @@ void handleButtons() {
   if (btnFreqPressed && (currentTime - lastDebounceFreq >= DEBOUNCE_DELAY)) {
     btnFreqPressed = false;
     lastDebounceFreq = currentTime;
-    lastInteraction = currentTime;
-    wakeDisplay();
-    
     if (menuState == MENU_MAIN_DISPLAY) {
       currentFreq = (currentFreq + 1) % 8;
       Serial.print(F("Freq: ")); Serial.println(getFreqName(currentFreq));
@@ -519,9 +502,6 @@ void handleButtons() {
   if (modeState && !btnModePressed && (currentTime - lastDebounceMode >= DEBOUNCE_DELAY)) {
     btnModePressed = true;
     lastDebounceMode = currentTime;
-    lastInteraction = currentTime;
-    wakeDisplay();
-    
     if (menuState == MENU_MAIN_DISPLAY) {
       currentMode = (currentMode + 1) % MODE_COUNT;
       Serial.print(F("Mode: ")); Serial.println(getModeName(currentMode));
@@ -545,9 +525,6 @@ void handleButtons() {
   if (menuBtnState && !btnMenuPressed && (currentTime - lastDebounceMenu >= DEBOUNCE_DELAY)) {
     btnMenuPressed = true;
     lastDebounceMenu = currentTime;
-    lastInteraction = currentTime;
-    wakeDisplay();
-    
     if (menuState == MENU_MAIN_DISPLAY) {
       menuState = MENU_CONFIG;
       menuSelection = 0;
@@ -640,12 +617,7 @@ void updateBatteryStatus() {
 //  GESTION ÉCRAN
 // ═══════════════════════════════════════════════════════════════════════════
 
-void wakeDisplay() {
-  if (!displayOn) {
-    displayOn = true;
-    display.ssd1306_command(SSD1306_DISPLAYON);
-  }
-}
+
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  SAUVEGARDE/CHARGEMENT EEPROM
