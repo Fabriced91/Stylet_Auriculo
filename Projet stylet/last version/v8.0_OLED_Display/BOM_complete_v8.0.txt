@@ -60,6 +60,17 @@ D1   |  1  | LED principale           | Nichia NSPW500CS     | 5mm TH     | -   
 ❌ D2, D3, D4 (LEDs RGB 0805) SUPPRIMÉES : remplacées par affichage OLED
 
 ┌──────────────────────────────────────────────────────────────────────────┐
+│ DIODE DE PROTECTION                                                      │
+└──────────────────────────────────────────────────────────────────────────┘
+
+REF  | QTÉ | DÉSIGNATION              | VALEUR/MODÈLE        | BOÎTIER    | LCSC    | PRIX   | NOTES
+─────┼─────┼──────────────────────────┼──────────────────────┼────────────┼─────────┼────────┼─────────────
+D2   |  1  | Diode Schottky           | B5819W 40V/1A        | SOD-123    | C8598   | 0.05€  | Vf=0.2V, protection inversée VBAT
+
+⚠️ CRITIQUE : Ne PAS utiliser SS14 (Vf=0.5V trop élevé → LDO MCP1700T
+   n'a pas assez de headroom pour réguler 3.3V sur batterie 3.7V).
+
+┌──────────────────────────────────────────────────────────────────────────┐
 │ RÉSISTANCES SMD 0805                                                     │
 └──────────────────────────────────────────────────────────────────────────┘
 

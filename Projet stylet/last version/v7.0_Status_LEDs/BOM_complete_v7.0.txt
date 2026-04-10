@@ -89,9 +89,9 @@ Note : Prix unitaires pour fabrication prototype (quantité 1).
 ┌─────┬──────────────────────┬──────────┬─────────────────┬──────────────────────┬────────┬──────────────┐
 │ Ref │      Composant       │ Package  │     Valeur      │  Fabricant/Réf       │  Qté   │ Prix unit.   │
 ├─────┼──────────────────────┼──────────┼─────────────────┼──────────────────────┼────────┼──────────────┤
-│ D1  │ Diode Schottky       │ SOD-123  │ SS14            │ Various SS14         │   1    │    0.10€     │
-│     │ (Protection          │          │ Vf: 0.5V @ 1A   │ LCSC: C2480          │        │              │
-│     │ inversée batterie)   │          │                 │                      │        │              │
+│ D1  │ Diode Schottky       │ SOD-123  │ B5819W          │ Various B5819W       │   1    │    0.05€     │
+│     │ (Protection          │          │ Vf: 0.2V @ 50mA │ LCSC: C8598          │        │              │
+│     │ inversée batterie)   │          │ 40V / 1A        │                      │        │              │
 ├─────┼──────────────────────┼──────────┼─────────────────┼──────────────────────┼────────┼──────────────┤
 │ D2  │ LED Indicateur       │ 0805     │ Rouge           │ Kingbright           │   1    │    0.05€     │
 │     │ Charge TP4056        │          │ 2V, 20mA        │ APT2012EC            │        │              │
@@ -324,7 +324,7 @@ U1,1,Microchip,ATMEGA328P-AU,MCU 8-bit 32KB Flash TQFP-32,TQFP-32,Digikey,ATMEGA
 U2,1,NXP,PCF8574AT,I2C I/O Expander 8-bit (addr 0x38),SOIC-16,LCSC,C6526,1.00,PCF8574A variante (0x38)
 U4,1,Holtek,HT7333-A,LDO 3.3V 250mA SOT-89,SOT-89,LCSC,C21583,0.40,Inchangé v6
 U5,1,NJT,TP4056,Li-Ion Charger 1A SOT23-6,SOT23-6,LCSC,C32574,0.30,Inchangé v6
-D1,1,Various,SS14,Diode Schottky 1A 40V,SOD-123,LCSC,C2480,0.10,Inchangé v6
+D1,1,Various,B5819W,Diode Schottky 1A 40V Vf=0.2V,SOD-123,LCSC,C8598,0.05,Remplace SS14 (Vf trop élevé)
 D2,1,Kingbright,APT2012EC,LED Rouge 0805 2V 20mA,0805,LCSC,C2286,0.05,Charge TP4056
 D3,1,Kingbright,APT2012CGCK,LED Verte 0805 2.1V 20mA,0805,LCSC,C2290,0.05,Standby TP4056
 R_LED,1,Various,0805,Resistor 47Ω 0805 1/8W,0805,LCSC,C17713,0.01,NOUVEAU v7!
